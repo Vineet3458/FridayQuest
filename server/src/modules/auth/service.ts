@@ -66,6 +66,8 @@ export class AuthService {
         role: adminUser.role,
         department: adminUser.department,
         status: adminUser.status,
+        xp: adminUser.xp || 950,
+        level: adminUser.level || 5,
       },
       tokens: { accessToken, refreshToken },
     };
@@ -165,6 +167,8 @@ export class AuthService {
         department: user.department,
         status: user.status,
         orgId: user.orgId,
+        xp: user.xp || 350,
+        level: user.level || 2,
       },
       tokens: { accessToken, refreshToken },
     };

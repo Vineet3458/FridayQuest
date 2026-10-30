@@ -10,6 +10,8 @@ export interface User {
   avatar?: string;
   status: UserStatus;
   orgId?: string;
+  xp?: number;
+  level?: number;
 }
 
 export interface Organization {
