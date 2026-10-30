@@ -40,7 +40,7 @@ export class UsersService {
   public static async updateUserRole(orgId: string, targetUserId: string, role: UserRole) {
     const user = await User.findOneAndUpdate(
       { _id: targetUserId, orgId },
-      { $set: { role } },
+      { $set: { role }, $inc: { tokenVersion: 1 } },
       { new: true }
     ).select('-passwordHash');
 
@@ -48,4 +48,3 @@ export class UsersService {
     return user;
   }
 }
-

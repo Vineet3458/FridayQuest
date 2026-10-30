@@ -23,7 +23,7 @@ export class VibeController {
           vibe,
           summary,
         });
-        io.to('dashboard').emit('vibe:updated', {
+        io.to(`org:${req.orgId}`).emit('vibe:updated', {
           sessionId,
           vibe,
           summary,

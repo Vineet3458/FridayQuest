@@ -5,6 +5,8 @@ import { verifyAccessToken } from '../utils/jwt.js';
 import { registerSessionHandlers } from './sessionHandlers.js';
 import { SessionState } from '../models/SessionState.js';
 import { logger } from '../utils/logger.js';
+import { User } from '../models/User.js';
+import { AuthUserPayload } from '../types/index.js';
 
 let ioInstance: Server | null = null;
 let timerTickerInterval: NodeJS.Timeout | null = null;
@@ -23,7 +25,7 @@ export function safeGetIO(): Server | null {
 export function setupSocketServer(httpServer: HttpServer): Server {
   const io = new Server(httpServer, {
     cors: {
-      origin: [ENV.CLIENT_URL, 'http://localhost:3000', 'http://127.0.0.1:3000'],
+      origin: ENV.CORS_ORIGINS,
       credentials: true,
     },
   });
@@ -31,39 +33,59 @@ export function setupSocketServer(httpServer: HttpServer): Server {
   ioInstance = io;
 
   // Socket Auth Middleware
-  io.use((socket: Socket, next) => {
+  io.use(async (socket: Socket, next) => {
     try {
+      const cookieHeader = socket.handshake.headers.cookie || '';
+      const accessCookie = cookieHeader
+        .split(';')
+        .map((cookie) => cookie.trim())
+        .find((cookie) => cookie.startsWith('access_token='))
+        ?.slice('access_token='.length);
       const token =
         socket.handshake.auth?.token ||
-        socket.handshake.headers?.authorization?.replace('Bearer ', '') ||
-        (socket.handshake.query?.token as string);
+        (socket.handshake.headers.authorization?.startsWith('Bearer ')
+          ? socket.handshake.headers.authorization.slice('Bearer '.length)
+          : undefined) ||
+        (accessCookie ? decodeURIComponent(accessCookie) : undefined);
 
       if (token) {
         const payload = verifyAccessToken(token);
-        socket.data.user = payload;
+        const user = await User.findById(payload.userId).select('_id orgId role email status +tokenVersion');
+        if (
+          !user ||
+          user.status !== 'active' ||
+          (payload.tokenVersion ?? 0) !== (user.tokenVersion ?? 0)
+        ) {
+          next(new Error('Unauthorized'));
+          return;
+        }
+        const authUser: AuthUserPayload = {
+          userId: user._id.toString(),
+          orgId: user.orgId.toString(),
+          role: user.role,
+          email: user.email,
+        };
+        socket.data.user = authUser;
       }
-      // Allow connection even without token (e.g. projector screen / read-only TV mode)
       next();
-    } catch (error) {
-      // Allow anonymous connection with undefined user (projector view)
-      next();
+    } catch {
+      next(new Error('Unauthorized'));
     }
   });
 
   io.on('connection', (socket: Socket) => {
     logger.info({ socketId: socket.id, user: socket.data.user?.email }, 'Socket connected');
 
-    // Auto-join dashboard real-time room
-    socket.join('dashboard');
     if (socket.data.user?.orgId) {
       socket.join(`org:${socket.data.user.orgId}`);
     }
+    if (socket.data.user?.userId) {
+      socket.join(`user:${socket.data.user.userId}`);
+    }
 
-    // Explicit room joins
-    socket.on('dashboard:join', (data?: { orgId?: string }) => {
-      socket.join('dashboard');
-      if (data?.orgId) {
-        socket.join(`org:${data.orgId}`);
+    socket.on('dashboard:join', () => {
+      if (socket.data.user?.orgId) {
+        socket.join(`org:${socket.data.user.orgId}`);
       }
       socket.emit('dashboard:connected', { status: 'live', timestamp: new Date().toISOString() });
     });

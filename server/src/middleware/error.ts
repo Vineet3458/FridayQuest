@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { logger } from '../utils/logger.js';
 import { sendError } from '../utils/response.js';
+import { ENV } from '../config/env.js';
 
 export function errorHandler(
   err: any,
@@ -21,8 +22,10 @@ export function errorHandler(
     return;
   }
 
-  const message = err.message || 'Internal Server Error';
   const statusCode = err.statusCode || 500;
+  const message =
+    statusCode >= 500 && ENV.NODE_ENV === 'production'
+      ? 'Internal Server Error'
+      : err.message || 'Internal Server Error';
   sendError(res, message, statusCode);
 }
-

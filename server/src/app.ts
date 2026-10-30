@@ -26,7 +26,7 @@ export function createApp(): Express {
   app.use(helmet());
   app.use(
     cors({
-      origin: [ENV.CLIENT_URL, 'http://localhost:3000', 'http://127.0.0.1:3000'],
+      origin: ENV.CORS_ORIGINS,
       credentials: true,
     })
   );
@@ -45,6 +45,16 @@ export function createApp(): Express {
     legacyHeaders: false,
   });
   app.use('/api/v1/auth', authLimiter);
+  app.use(
+    '/api/v1/auth/login',
+    rateLimit({
+      windowMs: 15 * 60 * 1000,
+      max: 10,
+      message: { success: false, message: 'Too many login attempts. Please try again later.' },
+      standardHeaders: true,
+      legacyHeaders: false,
+    })
+  );
 
   // Health check route
   app.get('/api/v1/health', (_req, res) => {
@@ -74,4 +84,3 @@ export function createApp(): Express {
 
   return app;
 }
-

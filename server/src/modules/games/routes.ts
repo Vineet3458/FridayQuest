@@ -12,12 +12,26 @@ router.use(authenticate, enforceTenant);
 
 router.get('/', GamesController.getGames);
 router.get('/:id', GamesController.getGameById);
-router.post('/', validate({ body: createGameSchema }), GamesController.createGame);
-router.patch('/:id', validate({ body: updateGameSchema }), GamesController.updateGame);
-router.post('/validate-definition', validate({ body: gameDefinitionSchema }), GamesController.validateGame);
-router.post('/:id/submit', GamesController.submitGame);
+router.post(
+  '/',
+  requireRole('orgAdmin', 'organizer', 'superAdmin'),
+  validate({ body: createGameSchema }),
+  GamesController.createGame
+);
+router.patch(
+  '/:id',
+  requireRole('orgAdmin', 'organizer', 'superAdmin'),
+  validate({ body: updateGameSchema }),
+  GamesController.updateGame
+);
+router.post(
+  '/validate-definition',
+  requireRole('orgAdmin', 'organizer', 'superAdmin'),
+  validate({ body: gameDefinitionSchema }),
+  GamesController.validateGame
+);
+router.post('/:id/submit', requireRole('orgAdmin', 'organizer', 'superAdmin'), GamesController.submitGame);
 router.post('/:id/approve', requireRole('orgAdmin', 'superAdmin'), GamesController.approveGame);
-router.post('/:id/dryrun', GamesController.dryRun);
+router.post('/:id/dryrun', requireRole('orgAdmin', 'organizer', 'superAdmin'), GamesController.dryRun);
 
 export default router;
-

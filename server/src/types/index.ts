@@ -6,6 +6,7 @@ export interface AuthUserPayload {
   orgId: string;
   role: UserRole;
   email: string;
+  tokenVersion?: number;
 }
 
 export type GameLevel = 1 | 2 | 3;
@@ -80,4 +81,3 @@ export interface SessionAgendaItem {
   start?: string;
   durationMin: number;
 }
-

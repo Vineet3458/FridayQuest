@@ -42,10 +42,11 @@ export class GamesService {
     return Game.find(query).sort({ avgRating: -1, createdAt: -1 });
   }
 
-  public static async getGameById(gameId: string, orgId: string) {
+  public static async getGameById(gameId: string, orgId: string, canViewUnpublished = false) {
     const game = await Game.findOne({
       _id: gameId,
       $or: [{ orgId }, { orgId: null }],
+      ...(canViewUnpublished ? {} : { status: 'published' }),
     });
     if (!game) throw new Error('Game not found');
     return game;
@@ -188,4 +189,3 @@ export class GamesService {
     };
   }
 }
-

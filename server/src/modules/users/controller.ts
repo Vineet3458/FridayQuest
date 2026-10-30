@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { UsersService } from './service.js';
 import { sendSuccess } from '../../utils/response.js';
+import { safeGetIO } from '../../sockets/index.js';
 
 export class UsersController {
   public static async getMe(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -44,19 +45,11 @@ export class UsersController {
     try {
       const targetUserId = req.params.id as string;
       const updated = await UsersService.updateUserRole(req.orgId!, targetUserId, req.body.role);
+      safeGetIO()?.in(`user:${targetUserId}`).disconnectSockets(true);
       sendSuccess(res, updated, 'User role updated successfully');
     } catch (error) {
       next(error);
     }
   }
 
-  public static async seedUsers(_req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const { seedTwentyUsers } = await import('../../seed/seedUsers.js');
-      const result = await seedTwentyUsers();
-      sendSuccess(res, result, 'Successfully seeded 20 users and roles');
-    } catch (error) {
-      next(error);
-    }
-  }
 }

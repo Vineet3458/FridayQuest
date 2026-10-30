@@ -12,7 +12,7 @@ export function validate(schema: ValidationSchema) {
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       if (schema.body) {
-        req.body = await schema.body.parseAsync(req.body);
+        req.body = await schema.body.parseAsync(req.body ?? {});
       }
       if (schema.query) {
         req.query = await schema.query.parseAsync(req.query);
@@ -38,4 +38,3 @@ export function validate(schema: ValidationSchema) {
     }
   };
 }
-

@@ -24,6 +24,7 @@ export interface IUser extends Document {
   preferences: IUserPreferences;
   xp: number;
   level: number;
+  tokenVersion: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -60,9 +61,9 @@ const UserSchema = new Schema<IUser>(
     },
     xp: { type: Number, default: 0 },
     level: { type: Number, default: 1 },
+    tokenVersion: { type: Number, default: 0, select: false },
   },
   { timestamps: true }
 );
 
 export const User = mongoose.model<IUser>('User', UserSchema);
-

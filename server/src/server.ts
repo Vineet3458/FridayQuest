@@ -12,13 +12,14 @@ import { seedFullDemo } from './seed/seedFullDemo.js';
 async function bootstrap() {
   await connectDB();
 
-  // Automatically seed the games, 20+ users, live session & rich demo data on startup
-  try {
-    await seedGames();
-    await seedTwentyUsers();
-    await seedFullDemo();
-  } catch (seedErr) {
-    logger.warn({ seedErr }, 'Notice: Automatic seeding deferred until MongoDB connects.');
+  if (ENV.NODE_ENV !== 'production') {
+    try {
+      await seedGames();
+      await seedTwentyUsers();
+      await seedFullDemo();
+    } catch (seedErr) {
+      logger.warn({ seedErr }, 'Development seed data was not loaded.');
+    }
   }
 
   const app = createApp();
@@ -60,4 +61,3 @@ bootstrap().catch((err) => {
   logger.error({ err }, 'Fatal error during server bootstrap');
   process.exit(1);
 });
-

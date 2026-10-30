@@ -12,6 +12,12 @@ import { AuthUserPayload } from '../types/index.js';
 
 export function registerSessionHandlers(io: Server, socket: Socket) {
   const user = (socket.data as { user?: AuthUserPayload }).user;
+  const canManageSession = (session: { orgId: { toString(): string } }) =>
+    Boolean(
+      user &&
+        ['orgAdmin', 'organizer', 'superAdmin'].includes(user.role) &&
+        user.orgId === session.orgId.toString()
+    );
 
   // 1. Join live session room
   socket.on('session:join', async (data: { sessionId: string }) => {
@@ -20,6 +26,10 @@ export function registerSessionHandlers(io: Server, socket: Socket) {
       const session = await Session.findById(sessionId);
       if (!session) {
         socket.emit('error:session', { message: 'Session not found' });
+        return;
+      }
+      if (user && user.orgId !== session.orgId.toString()) {
+        socket.emit('error:session', { message: 'Access denied' });
         return;
       }
 
@@ -74,6 +84,8 @@ export function registerSessionHandlers(io: Server, socket: Socket) {
       if (!user) return;
       const { sessionId, type, payload } = data;
       const roomName = `session:${sessionId}`;
+      const session = await Session.findById(sessionId).select('orgId');
+      if (!session || user.orgId !== session.orgId.toString()) return;
 
       const state = await SessionState.findOne({ sessionId });
       if (!state || state.status !== 'in_progress' || state.paused) return;
@@ -117,7 +129,7 @@ export function registerSessionHandlers(io: Server, socket: Socket) {
       const roomName = `session:${sessionId}`;
 
       const session = await Session.findById(sessionId);
-      if (!session || session.agenda.length === 0) return;
+      if (!session || !canManageSession(session) || session.agenda.length === 0) return;
 
       const state = await SessionState.findOne({ sessionId });
       if (!state) return;
@@ -211,6 +223,8 @@ export function registerSessionHandlers(io: Server, socket: Socket) {
       const { sessionId } = data;
       const roomName = `session:${sessionId}`;
 
+      const session = await Session.findById(sessionId).select('orgId');
+      if (!session || !canManageSession(session)) return;
       const state = await SessionState.findOne({ sessionId });
       if (!state) return;
 
@@ -245,7 +259,7 @@ export function registerSessionHandlers(io: Server, socket: Socket) {
       if (!user || (user.role !== 'orgAdmin' && user.role !== 'organizer' && user.role !== 'superAdmin')) return;
       const { sessionId, targetId, points, reason } = data;
       const session = await Session.findById(sessionId);
-      if (!session) return;
+      if (!session || !canManageSession(session)) return;
 
       await ScoringService.awardScore(sessionId, session.orgId.toString(), user.userId, {
         userId: targetId,
@@ -267,7 +281,7 @@ export function registerSessionHandlers(io: Server, socket: Socket) {
       const { sessionId } = data;
       const roomName = `session:${sessionId}`;
       const session = await Session.findById(sessionId);
-      if (!session) return;
+      if (!session || !canManageSession(session)) return;
       const state = await SessionState.findOne({ sessionId });
       if (!state) return;
 
@@ -301,7 +315,7 @@ export function registerSessionHandlers(io: Server, socket: Socket) {
       const { sessionId } = data;
       const roomName = `session:${sessionId}`;
       const session = await Session.findById(sessionId);
-      if (!session) return;
+      if (!session || !canManageSession(session)) return;
       const state = await SessionState.findOne({ sessionId });
       if (!state) return;
 
@@ -322,6 +336,8 @@ export function registerSessionHandlers(io: Server, socket: Socket) {
       if (!user || (user.role !== 'orgAdmin' && user.role !== 'organizer' && user.role !== 'superAdmin')) return;
       const { sessionId } = data;
       const roomName = `session:${sessionId}`;
+      const session = await Session.findById(sessionId).select('orgId');
+      if (!session || !canManageSession(session)) return;
       const state = await SessionState.findOne({ sessionId });
       if (!state) return;
 
@@ -355,4 +371,3 @@ function getPublicState(state: ISessionState, session: any) {
     status: state.status,
   };
 }
-

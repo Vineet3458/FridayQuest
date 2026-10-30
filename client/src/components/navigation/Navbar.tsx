@@ -9,27 +9,24 @@ import {
   Gamepad2,
   Users,
   ShieldAlert,
-  Tv,
   LogOut,
   ChevronDown,
-  UserCheck,
-  Building2,
-  Shield,
-  Sparkles,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/useAuthStore';
-import { apiRequest } from '@/lib/api';
 import ThemeToggle from '@/components/theme/ThemeToggle';
-import { UserRole } from '@/types';
 
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, setUser, logout } = useAuthStore();
+  const { user, logout, checkAuth } = useAuthStore();
   const [profileOpen, setProfileOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown when clicking outside
+  useEffect(() => {
+    if (!user) void checkAuth();
+  }, [checkAuth, user]);
+
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -42,26 +39,11 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     try {
-      await apiRequest('/auth/logout', { method: 'POST' });
-    } catch {}
-    logout();
-    router.push('/login');
-  };
-
-  const handleRoleSwitch = async (role: UserRole) => {
-    setProfileOpen(false);
-    try {
-      const res = await apiRequest('/auth/trial', {
-        method: 'POST',
-        body: JSON.stringify({ role }),
-      });
-      if (res.success && res.data?.user) {
-        setUser(res.data.user);
-      } else if (user) {
-        setUser({ ...user, role });
-      }
+      await logout();
     } catch {
-      if (user) setUser({ ...user, role });
+      // Local state is cleared even when the API cannot be reached.
+    } finally {
+      router.replace('/login');
     }
   };
 
@@ -126,7 +108,7 @@ export default function Navbar() {
               </Link>
 
               {/* Desktop Nav Links */}
-              <nav className="hidden md:flex items-center gap-1">
+              {user && <nav className="hidden md:flex items-center gap-1">
                 {navItems.map((item) => {
                   const Icon = item.icon;
                   const isActive = pathname === item.href;
@@ -145,7 +127,7 @@ export default function Navbar() {
                     </Link>
                   );
                 })}
-              </nav>
+              </nav>}
             </div>
 
             {/* Right Tools & User Info */}
@@ -153,17 +135,7 @@ export default function Navbar() {
               {/* Theme Toggle Button */}
               <ThemeToggle />
 
-              {/* Projector TV View Shortcut */}
-              <Link
-                href="/session/KIRXA-DEMO/screen"
-                className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700/60 text-slate-700 dark:text-slate-300 text-xs font-medium transition-colors"
-                title="Open Cafeteria TV View"
-              >
-                <Tv className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-                <span className="font-semibold">Projector TV</span>
-              </Link>
-
-              {/* User Profile / Popover */}
+              {user ? (
               <div className="relative" ref={dropdownRef}>
                 <button
                   type="button"
@@ -172,14 +144,14 @@ export default function Navbar() {
                 >
                   <div
                     className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-bold text-xs flex items-center justify-center shadow-xs shrink-0 select-none ring-2 ring-white dark:ring-slate-900"
-                    title={user?.name || 'Kirxa'}
+                    title={user.name}
                   >
-                    {getInitials(user?.name)}
+                    {getInitials(user.name)}
                   </div>
 
                   <div className="text-right hidden sm:block">
                     <div className="text-xs font-bold text-slate-900 dark:text-white truncate max-w-[120px] leading-tight">
-                      {user?.name || 'Kirxa'}
+                      {user.name}
                     </div>
                     <div className="text-[10px] text-slate-500 dark:text-slate-400 capitalize flex items-center justify-end gap-1">
                       <span>{roleLabel}</span>
@@ -188,53 +160,18 @@ export default function Navbar() {
                   </div>
                 </button>
 
-                {/* Profile & Role Switcher Popover */}
                 {profileOpen && (
                   <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl p-3 z-50 animate-in fade-in zoom-in-95 duration-150">
                     <div className="border-b border-slate-100 dark:border-slate-800 pb-2 mb-2">
                       <div className="font-bold text-xs text-slate-900 dark:text-white">
-                        {user?.name || 'Kirxa'}
+                        {user.name}
                       </div>
                       <div className="text-[11px] text-slate-500 truncate">
-                        {user?.email || 'player@kirxa.demo'}
+                        {user.email}
                       </div>
                       <div className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 text-[10px] font-bold">
                         <span>● {roleLabel}</span>
                       </div>
-                    </div>
-
-                    <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-1 py-1">
-                      Switch Role (Production Preview)
-                    </div>
-
-                    <div className="space-y-1">
-                      {[
-                        { role: 'player' as UserRole, name: 'Kirxa', desc: 'Participant & Gamified View', icon: Users },
-                        { role: 'organizer' as UserRole, name: 'Riya Sharma', desc: 'Session Planner & Host', icon: Sparkles },
-                        { role: 'orgAdmin' as UserRole, name: 'Amit Verma', desc: 'Company Analytics & HR', icon: Building2 },
-                        { role: 'superAdmin' as UserRole, name: 'Platform Owner', desc: 'Platform Management', icon: Shield },
-                      ].map((r) => {
-                        const isCurrent = (user?.role || 'player') === r.role;
-                        const Icon = r.icon;
-                        return (
-                          <button
-                            key={r.role}
-                            type="button"
-                            onClick={() => handleRoleSwitch(r.role)}
-                            className={`w-full p-2 rounded-xl text-left flex items-start gap-2.5 transition-colors cursor-pointer ${
-                              isCurrent
-                                ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 font-bold'
-                                : 'hover:bg-slate-50 dark:hover:bg-slate-800/60 text-slate-700 dark:text-slate-300'
-                            }`}
-                          >
-                            <Icon className="w-4 h-4 shrink-0 mt-0.5" />
-                            <div>
-                              <div className="text-xs leading-none font-bold">{r.name}</div>
-                              <div className="text-[10px] text-slate-400 mt-0.5">{r.desc}</div>
-                            </div>
-                          </button>
-                        );
-                      })}
                     </div>
 
                     <div className="border-t border-slate-100 dark:border-slate-800 pt-2 mt-2">
@@ -250,13 +187,21 @@ export default function Navbar() {
                   </div>
                 )}
               </div>
+              ) : (
+                <Link
+                  href="/login"
+                  className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold transition-colors"
+                >
+                  Sign In
+                </Link>
+              )}
             </div>
           </div>
         </div>
       </header>
 
       {/* Mobile Bottom Navigation Bar (Fixed thumb-friendly for phone screens with safe-area padding) */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-[#0c1222]/95 border-t border-slate-200/90 dark:border-slate-800/80 backdrop-blur-md z-30 pb-safe transition-colors shadow-lg">
+      {user && <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-[#0c1222]/95 border-t border-slate-200/90 dark:border-slate-800/80 backdrop-blur-md z-30 pb-safe transition-colors shadow-lg">
         <div className="grid grid-cols-5 h-14">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -286,7 +231,7 @@ export default function Navbar() {
             );
           })}
         </div>
-      </nav>
+      </nav>}
     </>
   );
 }

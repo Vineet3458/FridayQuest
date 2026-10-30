@@ -8,7 +8,6 @@ import {
   Search,
   Bell,
   Settings,
-  Tv,
   LayoutDashboard,
   User,
   BarChart2,
@@ -147,14 +146,6 @@ export default function SuperAdminDashboardView({ user, isCompact = false }: Sup
             </button>
 
             <ThemeToggle />
-
-            <Link
-              href="/session/KIRXA-DEMO/screen"
-              className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-blue-500/10 text-blue-400 text-[11px] font-semibold"
-            >
-              <Tv className="w-3 h-3" />
-              <span>TV</span>
-            </Link>
 
             {/* Avatar */}
             <div className="flex items-center gap-1.5 pl-2 border-l border-slate-800">
@@ -375,4 +366,3 @@ export default function SuperAdminDashboardView({ user, isCompact = false }: Sup
     </div>
   );
 }
-

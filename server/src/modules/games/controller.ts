@@ -10,7 +10,9 @@ export class GamesController {
         energy: req.query.energy as string,
         pack: req.query.pack as string,
         players: req.query.players ? parseInt(req.query.players as string, 10) : undefined,
-        status: req.query.status as string,
+        status: ['orgAdmin', 'organizer', 'superAdmin'].includes(req.user!.role)
+          ? (req.query.status as string)
+          : 'published',
       };
 
       const games = await GamesService.getGames(req.orgId!, filters);
@@ -23,7 +25,8 @@ export class GamesController {
   public static async getGameById(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const gameId = req.params.id as string;
-      const game = await GamesService.getGameById(gameId, req.orgId!);
+      const canViewUnpublished = ['orgAdmin', 'organizer', 'superAdmin'].includes(req.user!.role);
+      const game = await GamesService.getGameById(gameId, req.orgId!, canViewUnpublished);
       sendSuccess(res, game);
     } catch (error) {
       next(error);

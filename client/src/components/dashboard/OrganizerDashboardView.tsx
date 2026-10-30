@@ -33,9 +33,11 @@ export default function OrganizerDashboardView({
   nextSession,
   isCompact = false,
 }: OrganizerDashboardViewProps) {
-  const displayName = user?.name || 'Riya Sharma';
+  const displayName = user?.name || 'Organizer';
   const userInitials = displayName.slice(0, 2).toUpperCase();
-  const joinCode = nextSession?.joinCode || 'KIRXA-DEMO';
+  const joinCode = nextSession?.joinCode || '';
+  const liveRoomUrl = joinCode ? `/session/${encodeURIComponent(joinCode)}/play` : '/sessions';
+  const screenUrl = joinCode ? `/session/${encodeURIComponent(joinCode)}/screen` : '/sessions';
 
   return (
     <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl overflow-hidden flex flex-col md:flex-row transition-all">
@@ -94,7 +96,7 @@ export default function OrganizerDashboardView({
               <span>Game Library</span>
             </Link>
             <Link
-              href={`/session/${joinCode}/play`}
+              href={liveRoomUrl}
               className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-800/60 transition-colors"
             >
               <Play className="w-3.5 h-3.5" />
@@ -155,7 +157,7 @@ export default function OrganizerDashboardView({
             <ThemeToggle />
 
             <Link
-              href={`/session/${joinCode}/screen`}
+              href={screenUrl}
               className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400 text-[11px] font-semibold"
             >
               <Tv className="w-3 h-3" />
@@ -249,7 +251,7 @@ export default function OrganizerDashboardView({
 
               <div>
                 <h3 className="text-lg font-black text-slate-900 dark:text-white">
-                  {nextSession?.title || 'Fun Friday Kickoff'}
+                  {nextSession?.title || 'No upcoming session'}
                 </h3>
                 <div className="text-xs text-slate-500 space-y-0.5 mt-1.5">
                   <div>Fri, Oct 30, 2026 • 4:00 PM - 5:30 PM</div>
@@ -266,7 +268,7 @@ export default function OrganizerDashboardView({
                   Edit Session
                 </Link>
                 <Link
-                  href={`/session/${joinCode}/play`}
+                  href={liveRoomUrl}
                   className="flex-1 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-center text-xs font-bold transition-colors shadow-xs"
                 >
                   ▶ Start Session
@@ -319,7 +321,7 @@ export default function OrganizerDashboardView({
                 { title: 'Auto Planner', desc: 'Generate best plan', href: '/sessions' },
                 { title: 'Team Maker', desc: 'Create balanced teams', href: '/teams' },
                 { title: 'Game Library', desc: 'Browse & select games', href: '/games' },
-                { title: 'Live Control', desc: 'Manage ongoing session', href: `/session/${joinCode}/play` },
+                { title: 'Live Control', desc: 'Manage ongoing session', href: liveRoomUrl },
               ].map((tool, idx) => (
                 <Link
                   key={idx}
@@ -396,4 +398,3 @@ export default function OrganizerDashboardView({
     </div>
   );
 }
-

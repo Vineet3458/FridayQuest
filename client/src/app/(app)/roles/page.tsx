@@ -9,8 +9,6 @@ import {
   Check,
   X,
   Sparkles,
-  ArrowRight,
-  Eye,
   Tv,
   Gamepad2,
   Users as UsersIcon,
@@ -19,7 +17,6 @@ import {
 import { useAuthStore } from '@/stores/useAuthStore';
 import { ROLE_INFO } from '@/lib/roles';
 import { UserRole } from '@/types';
-import { apiRequest } from '@/lib/api';
 import Link from 'next/link';
 
 interface CapabilityRow {
@@ -135,43 +132,10 @@ const CAPABILITIES: CapabilityRow[] = [
 ];
 
 export default function RolesMatrixPage() {
-  const { user, setUser } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
   const [selectedRole, setSelectedRole] = useState<UserRole>(user?.role || 'player');
-  const [switching, setSwitching] = useState(false);
 
   const currentRole: UserRole = user?.role || 'player';
-
-  const handleActivateRole = async (role: UserRole) => {
-    setSwitching(true);
-    setSelectedRole(role);
-    try {
-      const res = await apiRequest('/auth/trial', {
-        method: 'POST',
-        body: JSON.stringify({ role }),
-      });
-      if (res.success && res.data?.user) {
-        setUser(res.data.user);
-      }
-    } catch {
-      const mockNames: Record<UserRole, { name: string; email: string; dept: string }> = {
-        superAdmin: { name: 'Kirxa SuperAdmin', email: 'superadmin@kirxa.demo', dept: 'Platform Ops' },
-        orgAdmin: { name: 'Riya Sharma (HR Admin)', email: 'riya.hr@kirxa.demo', dept: 'People & Culture' },
-        organizer: { name: 'Kabir Patel (Friday Host)', email: 'kabir.host@kirxa.demo', dept: 'Engineering' },
-        player: { name: 'Ananya Sen (Player)', email: 'ananya.player@kirxa.demo', dept: 'Design' },
-      };
-      const info = mockNames[role];
-      setUser({
-        id: `trial-${role}`,
-        name: info.name,
-        email: info.email,
-        role,
-        department: info.dept,
-        status: 'active',
-      });
-    } finally {
-      setSwitching(false);
-    }
-  };
 
   const selectedInfo = ROLE_INFO[selectedRole];
 
@@ -181,17 +145,17 @@ export default function RolesMatrixPage() {
       <div>
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-semibold mb-2">
           <Sparkles className="w-3.5 h-3.5" />
-          All Roles Trial & Access Explorer
+          Role access reference
         </div>
         <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-          Role Privileges & Live Simulation
+          Role Privileges
         </h1>
         <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 max-w-2xl">
-          FridayQuest has 4 distinct roles designed for office dynamics. Select any role below to experience what they see, test their workflows, and switch your active session with 1 click.
+          Review permissions for each account role. Previewing a role here does not change your account or grant access.
         </p>
       </div>
 
-      {/* Role Selector Cards Grid (Responsive 1-col mobile, 2-col tablet, 4-col laptop/desktop) */}
+      {/* Role reference cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {(['superAdmin', 'orgAdmin', 'organizer', 'player'] as UserRole[]).map((role) => {
           const info = ROLE_INFO[role];
@@ -199,10 +163,12 @@ export default function RolesMatrixPage() {
           const isActiveUser = currentRole === role;
 
           return (
-            <div
+            <button
+              type="button"
               key={role}
               onClick={() => setSelectedRole(role)}
-              className={`cursor-pointer rounded-2xl p-5 border transition-all relative flex flex-col justify-between ${
+              aria-pressed={isSelected}
+              className={`w-full cursor-pointer rounded-2xl border p-5 text-left transition-all relative flex flex-col justify-between ${
                 isSelected
                   ? `bg-white dark:bg-slate-900 ${info.borderColor} shadow-lg ring-2 ring-blue-500/20 dark:ring-white/10`
                   : 'bg-white/80 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-white dark:hover:bg-slate-900'
@@ -231,31 +197,10 @@ export default function RolesMatrixPage() {
                 </p>
               </div>
 
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleActivateRole(role);
-                }}
-                disabled={isActiveUser || switching}
-                className={`w-full py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                  isActiveUser
-                    ? 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 cursor-default'
-                    : 'bg-blue-600 hover:bg-blue-500 text-white shadow-md shadow-blue-500/20'
-                }`}
-              >
-                {isActiveUser ? (
-                  <>
-                    <Check className="w-3.5 h-3.5" /> Currently Acting as {info.title}
-                  </>
-                ) : (
-                  <>
-                    <span>Switch to {info.title}</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </>
-                )}
-              </button>
-            </div>
+              <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                {isActiveUser ? 'Your account role' : 'Select to preview permissions'}
+              </div>
+            </button>
           );
         })}
       </div>
@@ -265,7 +210,7 @@ export default function RolesMatrixPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
           <div>
             <div className="text-xs uppercase font-bold tracking-widest text-blue-600 dark:text-blue-400 mb-1">
-              Role Perspective Preview
+              Permission Reference
             </div>
             <h2 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
               What does <span className={selectedInfo.textColor}>{selectedInfo.title}</span> see & access?
@@ -274,14 +219,6 @@ export default function RolesMatrixPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            {currentRole !== selectedRole && (
-              <button
-                onClick={() => handleActivateRole(selectedRole)}
-                className="py-2.5 px-5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs shadow-lg shadow-blue-500/25 flex items-center gap-2 transition-all cursor-pointer"
-              >
-                <Eye className="w-4 h-4" /> Try Acting as {selectedInfo.title} Now
-              </button>
-            )}
             <Link
               href="/dashboard"
               className="py-2.5 px-4 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold rounded-xl text-xs transition-colors border border-slate-200 dark:border-transparent"

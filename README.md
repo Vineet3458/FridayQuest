@@ -138,8 +138,11 @@ npm run dev
 ---
 
 ## 🔒 Security & Architecture Principles
-1. **Multi-tenant scoping**: `orgId` is always extracted from the cryptographically verified JWT token. Client input never dictates organization boundary.
+1. **Multi-tenant scoping**: Every authenticated request reloads the active user and role from MongoDB; organization scope is taken from that record, not from client input or stale JWT role claims.
 2. **Layered Separation**: `Route -> Controller -> Service -> Model`. Business logic resides in services and pure functions so both REST and WebSockets share identical logic.
 3. **Safe Evaluation**: Custom scoring conditions use `json-logic-js` and safe token evaluators. `eval()` is strictly prohibited.
 4. **Game Library Section**: The catalog structure and builder API are fully functional; specific games are to be decided and populated in the subsequent development step as planned.
 
+### Production configuration
+
+Set `NODE_ENV=production`, `MONGO_URI`, and `CLIENT_URL` before starting the server. Provide independent `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, and `COOKIE_SECRET` values, each at least 32 characters long. The server refuses to start in production if these settings are missing or weak. Demo data is seeded only outside production; trial-role login and public seed endpoints are not available. Authentication uses httpOnly cookies, refreshes short-lived access tokens, and invalidates existing tokens at logout.

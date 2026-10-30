@@ -9,8 +9,8 @@ export class SessionsController {
       const session = await SessionsService.createSession(req.orgId!, req.user!.userId, req.body);
       const io = safeGetIO();
       if (io) {
-        io.to('dashboard').emit('session:created', session);
-        io.to('dashboard').emit('dashboard:update');
+        io.to(`org:${req.orgId}`).emit('session:created', session);
+        io.to(`org:${req.orgId}`).emit('dashboard:update');
       }
       sendSuccess(res, session, 'Session created successfully', 201);
     } catch (error) {
@@ -54,8 +54,8 @@ export class SessionsController {
       const io = safeGetIO();
       if (io) {
         io.to(`session:${sessionId}`).emit('session:updated', session);
-        io.to('dashboard').emit('session:updated', session);
-        io.to('dashboard').emit('dashboard:update');
+        io.to(`org:${req.orgId}`).emit('session:updated', session);
+        io.to(`org:${req.orgId}`).emit('dashboard:update');
       }
       sendSuccess(res, session, 'Session updated successfully');
     } catch (error) {
@@ -70,7 +70,7 @@ export class SessionsController {
       const io = safeGetIO();
       if (io) {
         io.to(`session:${sessionId}`).emit('session:updated', session);
-        io.to('dashboard').emit('dashboard:update');
+        io.to(`org:${req.orgId}`).emit('dashboard:update');
       }
       sendSuccess(res, session, 'Session agenda published');
     } catch (error) {
@@ -85,8 +85,8 @@ export class SessionsController {
       const io = safeGetIO();
       if (io) {
         io.to(`session:${sessionId}`).emit('session:started', result);
-        io.to('dashboard').emit('session:updated', result.session);
-        io.to('dashboard').emit('dashboard:update');
+        io.to(`org:${req.orgId}`).emit('session:updated', result.session);
+        io.to(`org:${req.orgId}`).emit('dashboard:update');
       }
       sendSuccess(res, result, 'Session started live');
     } catch (error) {
@@ -101,8 +101,8 @@ export class SessionsController {
       const io = safeGetIO();
       if (io) {
         io.to(`session:${sessionId}`).emit('session:ended', session);
-        io.to('dashboard').emit('session:updated', session);
-        io.to('dashboard').emit('dashboard:update');
+        io.to(`org:${req.orgId}`).emit('session:updated', session);
+        io.to(`org:${req.orgId}`).emit('dashboard:update');
       }
       sendSuccess(res, session, 'Session concluded');
     } catch (error) {

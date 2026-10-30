@@ -12,7 +12,7 @@ export class TeamsController {
       const io = safeGetIO();
       if (io) {
         io.to(`session:${sessionId}`).emit('teams:updated', teams);
-        io.to('dashboard').emit('dashboard:update');
+        io.to(`org:${req.orgId}`).emit('dashboard:update');
       }
       sendSuccess(res, teams, 'Teams generated successfully', 201);
     } catch (error) {
@@ -37,7 +37,7 @@ export class TeamsController {
       const io = safeGetIO();
       if (io) {
         io.to(`session:${sessionId}`).emit('teams:updated', teams);
-        io.to('dashboard').emit('dashboard:update');
+        io.to(`org:${req.orgId}`).emit('dashboard:update');
       }
       sendSuccess(res, teams, 'Teams updated successfully');
     } catch (error) {

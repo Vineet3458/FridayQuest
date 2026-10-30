@@ -18,11 +18,26 @@ export async function apiRequest<T = any>(
     headers.set('Content-Type', 'application/json');
   }
 
-  const response = await fetch(url, {
+  const requestOptions: RequestInit = {
     ...options,
     headers,
-    credentials: 'include', // sends httpOnly cookies
-  });
+    credentials: 'include',
+  };
+
+  let response = await fetch(url, requestOptions);
+  if (
+    response.status === 401 &&
+    !['/auth/login', '/auth/register', '/auth/register-org', '/auth/refresh'].includes(endpoint)
+  ) {
+    const refreshResponse = await fetch(`${API_BASE_URL}/auth/refresh`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (refreshResponse.ok) {
+      response = await fetch(url, requestOptions);
+    }
+  }
 
   const data = await response.json().catch(() => ({
     success: false,
@@ -35,4 +50,3 @@ export async function apiRequest<T = any>(
 
   return data;
 }
-

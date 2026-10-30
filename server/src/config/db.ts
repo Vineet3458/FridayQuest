@@ -9,7 +9,8 @@ export async function connectDB(): Promise<void> {
     logger.info('Connected to MongoDB successfully');
   } catch (error) {
     logger.error({ error }, 'Failed to connect to MongoDB');
-    // In development or test environments, we log the error but allow server startup if needed
+    if (ENV.NODE_ENV === 'production') {
+      throw error;
+    }
   }
 }
-

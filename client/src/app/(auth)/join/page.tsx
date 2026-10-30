@@ -37,6 +37,10 @@ export default function JoinPage() {
       });
 
       if (res.success && res.data?.user) {
+        if (res.data.user.status !== 'active') {
+          setError('Your account was created and is awaiting organization administrator approval.');
+          return;
+        }
         setUser(res.data.user);
         router.push('/dashboard');
       } else {
@@ -131,9 +135,11 @@ export default function JoinPage() {
             <input
               type="password"
               required
+              minLength={12}
+              maxLength={72}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
+              placeholder="At least 12 characters"
               className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-blue-500"
             />
           </div>
