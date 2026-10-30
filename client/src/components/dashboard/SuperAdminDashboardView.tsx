@@ -31,7 +31,7 @@ export default function SuperAdminDashboardView({ user, isCompact = false }: Sup
   const userInitials = displayName.slice(0, 2).toUpperCase();
 
   return (
-    <div className="rounded-3xl border border-slate-800 bg-[#0c101c] text-white shadow-2xl overflow-hidden flex flex-col md:flex-row transition-all">
+    <div className="min-h-[100dvh] w-full bg-[#0c101c] text-white overflow-hidden flex flex-col md:flex-row transition-all">
       {/* Mini Sidebar */}
       <aside
         className={`${

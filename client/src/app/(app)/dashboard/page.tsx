@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Loader2, RefreshCw, Zap } from 'lucide-react';
 import { apiRequest } from '@/lib/api';
 import { connectSocket } from '@/lib/socket';
@@ -17,7 +17,6 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [realtimeNotice, setRealtimeNotice] = useState<string | null>(null);
-  const [isSocketConnected, setIsSocketConnected] = useState(false);
   const [vibeEnergy, setVibeEnergy] = useState(4);
   const [vibeStyle, setVibeStyle] = useState<'active' | 'calm' | 'brainy'>('active');
   const [vibeSubmitting, setVibeSubmitting] = useState(false);
@@ -72,10 +71,8 @@ export default function DashboardPage() {
   useEffect(() => {
     const socket = connectSocket();
     const handleConnect = () => {
-      setIsSocketConnected(true);
       socket.emit('dashboard:join');
     };
-    const handleDisconnect = () => setIsSocketConnected(false);
     const handleDashboardUpdate = () => void loadDashboardData();
     const handleLiveUpdate = (data?: { title?: string; summary?: { totals?: { attendingCount?: number } } }) => {
       const attendeeCount = data?.summary?.totals?.attendingCount;
@@ -84,9 +81,7 @@ export default function DashboardPage() {
       window.setTimeout(() => setRealtimeNotice(null), 4000);
       void loadDashboardData();
     };
-
     socket.on('connect', handleConnect);
-    socket.on('disconnect', handleDisconnect);
     socket.on('dashboard:connected', handleConnect);
     socket.on('dashboard:update', handleDashboardUpdate);
     socket.on('session:created', handleLiveUpdate);
@@ -96,7 +91,6 @@ export default function DashboardPage() {
 
     return () => {
       socket.off('connect', handleConnect);
-      socket.off('disconnect', handleDisconnect);
       socket.off('dashboard:connected', handleConnect);
       socket.off('dashboard:update', handleDashboardUpdate);
       socket.off('session:created', handleLiveUpdate);
@@ -142,21 +136,6 @@ export default function DashboardPage() {
     }
   };
 
-  const dashboardTitle = useMemo(() => {
-    switch (user?.role) {
-      case 'player':
-        return 'Player Dashboard';
-      case 'organizer':
-        return 'Organizer Dashboard';
-      case 'orgAdmin':
-        return 'Organization Admin Dashboard';
-      case 'superAdmin':
-        return 'Platform Admin Dashboard';
-      default:
-        return 'Dashboard';
-    }
-  }, [user?.role]);
-
   const dashboardView = (() => {
     switch (user?.role) {
       case 'player':
@@ -188,20 +167,7 @@ export default function DashboardPage() {
   })();
 
   return (
-    <main className="mx-auto w-full max-w-[1600px] flex-1 space-y-4 px-3 py-5 sm:px-6 lg:px-8">
-      <header className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-slate-900 dark:text-white">{dashboardTitle}</h1>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Welcome, {user?.name}. Your workspace access is based on your account role.
-          </p>
-        </div>
-        <div className="flex items-center gap-2 text-xs font-semibold text-slate-600 dark:text-slate-300">
-          <span className={`h-2.5 w-2.5 rounded-full ${isSocketConnected ? 'bg-emerald-500' : 'bg-amber-500'}`} />
-          {isSocketConnected ? 'Live updates connected' : 'Connecting to live updates'}
-        </div>
-      </header>
-
+    <main className="flex min-h-[100dvh] w-full flex-1 flex-col">
       {realtimeNotice && (
         <div role="status" className="flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white">
           <Zap className="h-4 w-4" />

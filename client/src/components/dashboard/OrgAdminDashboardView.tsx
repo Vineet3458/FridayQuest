@@ -27,7 +27,7 @@ export default function OrgAdminDashboardView({ user, isCompact = false }: OrgAd
   const userInitials = displayName.slice(0, 2).toUpperCase();
 
   return (
-    <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl overflow-hidden flex flex-col md:flex-row transition-all">
+    <div className="min-h-[100dvh] w-full bg-white dark:bg-slate-900 overflow-hidden flex flex-col md:flex-row transition-all">
       {/* Mini Sidebar */}
       <aside
         className={`${
