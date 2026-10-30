@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { apiRequest } from '@/lib/api';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { connectSocket } from '@/lib/socket';
 
 export default function SessionsPage() {
   const { user } = useAuthStore();
@@ -50,6 +51,18 @@ export default function SessionsPage() {
 
   useEffect(() => {
     loadSessions();
+    const socket = connectSocket();
+    socket.emit('dashboard:join');
+    socket.on('session:created', loadSessions);
+    socket.on('session:updated', loadSessions);
+    socket.on('session:started', loadSessions);
+    socket.on('session:ended', loadSessions);
+    return () => {
+      socket.off('session:created', loadSessions);
+      socket.off('session:updated', loadSessions);
+      socket.off('session:started', loadSessions);
+      socket.off('session:ended', loadSessions);
+    };
   }, []);
 
   const handleCreate = async (e: React.FormEvent) => {

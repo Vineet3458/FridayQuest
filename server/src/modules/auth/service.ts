@@ -261,5 +261,23 @@ export class AuthService {
       tokens: { accessToken, refreshToken },
     };
   }
+
+  public static async getMe(userId: string) {
+    const user = await User.findById(userId).select('-passwordHash');
+    if (!user) {
+      throw new Error('User account not found');
+    }
+    return {
+      id: user._id.toString(),
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      department: user.department,
+      status: user.status,
+      orgId: user.orgId?.toString(),
+      xp: user.xp || 0,
+      level: user.level || 1,
+    };
+  }
 }
 

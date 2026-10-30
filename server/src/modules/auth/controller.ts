@@ -112,5 +112,30 @@ export class AuthController {
       next(error);
     }
   }
+
+  public static async seedDemoData(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { seedFullDemo } = await import('../../seed/seedFullDemo.js');
+      const result = await seedFullDemo();
+      sendSuccess(res, result, 'Demo data imported and seeded successfully');
+    } catch (error: any) {
+      next(error);
+    }
+  }
+
+  public static async getMe(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const authUser = (req as any).user;
+      if (!authUser?.userId && !authUser?.id) {
+        sendError(res, 'Unauthorized', 401);
+        return;
+      }
+      const userId = authUser.userId || authUser.id;
+      const user = await AuthService.getMe(userId);
+      sendSuccess(res, { user }, 'User profile retrieved successfully');
+    } catch (error: any) {
+      next(error);
+    }
+  }
 }
 

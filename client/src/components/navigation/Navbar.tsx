@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
@@ -10,15 +11,34 @@ import {
   ShieldAlert,
   Tv,
   LogOut,
+  ChevronDown,
+  UserCheck,
+  Building2,
+  Shield,
+  Sparkles,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { apiRequest } from '@/lib/api';
 import ThemeToggle from '@/components/theme/ThemeToggle';
+import { UserRole } from '@/types';
 
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, logout } = useAuthStore();
+  const { user, setUser, logout } = useAuthStore();
+  const [profileOpen, setProfileOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setProfileOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -26,6 +46,23 @@ export default function Navbar() {
     } catch {}
     logout();
     router.push('/login');
+  };
+
+  const handleRoleSwitch = async (role: UserRole) => {
+    setProfileOpen(false);
+    try {
+      const res = await apiRequest('/auth/trial', {
+        method: 'POST',
+        body: JSON.stringify({ role }),
+      });
+      if (res.success && res.data?.user) {
+        setUser(res.data.user);
+      } else if (user) {
+        setUser({ ...user, role });
+      }
+    } catch {
+      if (user) setUser({ ...user, role });
+    }
   };
 
   const navItems = [
@@ -43,7 +80,7 @@ export default function Navbar() {
 
   // Get user initials for avatar
   const getInitials = (name?: string) => {
-    if (!name) return 'FQ';
+    if (!name) return 'KI';
     const parts = name.trim().split(/\s+/);
     if (parts.length >= 2) {
       return (parts[0][0] + parts[1][0]).toUpperCase();
@@ -51,10 +88,19 @@ export default function Navbar() {
     return parts[0].slice(0, 2).toUpperCase();
   };
 
+  const roleLabel =
+    user?.role === 'superAdmin'
+      ? 'Super Admin'
+      : user?.role === 'orgAdmin'
+      ? 'Org Admin'
+      : user?.role === 'organizer'
+      ? 'Organizer'
+      : 'Player';
+
   return (
     <>
       {/* Desktop / Laptop & Tablet Header */}
-      <header className="w-full bg-white/95 dark:bg-[#0c1222]/95 border-b border-slate-200/90 dark:border-slate-800/80 sticky top-8 z-30 transition-colors backdrop-blur-md">
+      <header className="w-full bg-white/95 dark:bg-[#0c1222]/95 border-b border-slate-200/90 dark:border-slate-800/80 sticky top-0 z-30 transition-colors backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-14">
             {/* Brand Logo & Title */}
@@ -70,7 +116,7 @@ export default function Navbar() {
                   <span className="font-extrabold text-sm sm:text-base tracking-tight text-slate-900 dark:text-white flex items-center gap-1.5 leading-none">
                     FridayQuest
                     <span className="text-[9px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20">
-                      MVP
+                      LIVE
                     </span>
                   </span>
                   <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 hidden sm:inline">
@@ -109,59 +155,101 @@ export default function Navbar() {
 
               {/* Projector TV View Shortcut */}
               <Link
-                href="/session/DEMO/screen"
+                href="/session/KIRXA-DEMO/screen"
                 className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700/60 text-slate-700 dark:text-slate-300 text-xs font-medium transition-colors"
-                title="Open Projector / Cafeteria TV View"
+                title="Open Cafeteria TV View"
               >
                 <Tv className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                 <span className="font-semibold">Projector TV</span>
               </Link>
 
-              {/* User Profile / Auth */}
-              {user ? (
-                <div className="flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-slate-800">
-                  {/* User Initial Avatar */}
+              {/* User Profile / Popover */}
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  type="button"
+                  onClick={() => setProfileOpen(!profileOpen)}
+                  className="flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-slate-800 hover:opacity-90 transition-opacity cursor-pointer focus:outline-none"
+                >
                   <div
                     className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-bold text-xs flex items-center justify-center shadow-xs shrink-0 select-none ring-2 ring-white dark:ring-slate-900"
-                    title={user.name}
+                    title={user?.name || 'Kirxa'}
                   >
-                    {getInitials(user.name)}
+                    {getInitials(user?.name)}
                   </div>
 
                   <div className="text-right hidden sm:block">
                     <div className="text-xs font-bold text-slate-900 dark:text-white truncate max-w-[120px] leading-tight">
-                      {user.name}
+                      {user?.name || 'Kirxa'}
                     </div>
-                    <div className="text-[10px] text-slate-500 dark:text-slate-400 capitalize">
-                      {user.role || 'Member'} • {user.department || 'General'}
+                    <div className="text-[10px] text-slate-500 dark:text-slate-400 capitalize flex items-center justify-end gap-1">
+                      <span>{roleLabel}</span>
+                      <ChevronDown className="w-3 h-3 text-slate-400" />
                     </div>
                   </div>
+                </button>
 
-                  <button
-                    onClick={handleLogout}
-                    className="p-1.5 sm:p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer"
-                    title="Sign Out"
-                    aria-label="Sign Out"
-                  >
-                    <LogOut className="w-4 h-4" />
-                  </button>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <Link
-                    href="/login"
-                    className="px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
-                  >
-                    Sign In
-                  </Link>
-                  <Link
-                    href="/register"
-                    className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-lg shadow-sm shadow-blue-500/20"
-                  >
-                    Register
-                  </Link>
-                </div>
-              )}
+                {/* Profile & Role Switcher Popover */}
+                {profileOpen && (
+                  <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl p-3 z-50 animate-in fade-in zoom-in-95 duration-150">
+                    <div className="border-b border-slate-100 dark:border-slate-800 pb-2 mb-2">
+                      <div className="font-bold text-xs text-slate-900 dark:text-white">
+                        {user?.name || 'Kirxa'}
+                      </div>
+                      <div className="text-[11px] text-slate-500 truncate">
+                        {user?.email || 'player@kirxa.demo'}
+                      </div>
+                      <div className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 text-[10px] font-bold">
+                        <span>● {roleLabel}</span>
+                      </div>
+                    </div>
+
+                    <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-1 py-1">
+                      Switch Role (Production Preview)
+                    </div>
+
+                    <div className="space-y-1">
+                      {[
+                        { role: 'player' as UserRole, name: 'Kirxa', desc: 'Participant & Gamified View', icon: Users },
+                        { role: 'organizer' as UserRole, name: 'Riya Sharma', desc: 'Session Planner & Host', icon: Sparkles },
+                        { role: 'orgAdmin' as UserRole, name: 'Amit Verma', desc: 'Company Analytics & HR', icon: Building2 },
+                        { role: 'superAdmin' as UserRole, name: 'Platform Owner', desc: 'Platform Management', icon: Shield },
+                      ].map((r) => {
+                        const isCurrent = (user?.role || 'player') === r.role;
+                        const Icon = r.icon;
+                        return (
+                          <button
+                            key={r.role}
+                            type="button"
+                            onClick={() => handleRoleSwitch(r.role)}
+                            className={`w-full p-2 rounded-xl text-left flex items-start gap-2.5 transition-colors cursor-pointer ${
+                              isCurrent
+                                ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 font-bold'
+                                : 'hover:bg-slate-50 dark:hover:bg-slate-800/60 text-slate-700 dark:text-slate-300'
+                            }`}
+                          >
+                            <Icon className="w-4 h-4 shrink-0 mt-0.5" />
+                            <div>
+                              <div className="text-xs leading-none font-bold">{r.name}</div>
+                              <div className="text-[10px] text-slate-400 mt-0.5">{r.desc}</div>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    <div className="border-t border-slate-100 dark:border-slate-800 pt-2 mt-2">
+                      <button
+                        type="button"
+                        onClick={handleLogout}
+                        className="w-full flex items-center gap-2 p-2 rounded-xl text-xs font-semibold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer"
+                      >
+                        <LogOut className="w-3.5 h-3.5" />
+                        <span>Sign Out</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -192,7 +280,7 @@ export default function Navbar() {
                   {item.shortLabel}
                 </span>
                 {isActive && (
-                  <span className="absolute bottom-1 w-1 h-1 rounded-full bg-blue-600 dark:bg-blue-400"></span>
+                  <span className="absolute bottom-1 w-1 h-1 rounded-full bg-blue-600 dark:blue-400"></span>
                 )}
               </Link>
             );

@@ -1,0 +1,29 @@
+{
+  "name": "fridayquest",
+  "version": "1.0.0",
+  "private": true,
+  "description": "FridayQuest - Production-Ready Fun Friday Arranger, Game Master & Live Engine",
+  "scripts": {
+    "build": "npm run build:server && npm run build:client",
+    "build:server": "npm run build --prefix server",
+    "build:client": "node -e \"try{fs.rmSync('client/.next',{recursive:true,force:true})}catch(e){}\" && npm run build --prefix client",
+    "start": "npm run start:server",
+    "start:server": "npm run start --prefix server",
+    "start:client": "npm run start --prefix client",
+    "dev:server": "npm run dev --prefix server",
+    "dev:client": "npm run dev --prefix client",
+    "test": "npm run test --prefix server"
+  },
+  "keywords": [
+    "fridayquest",
+    "fun-friday",
+    "team-building",
+    "games",
+    "realtime",
+    "socketio",
+    "nextjs",
+    "express"
+  ],
+  "author": "FridayQuest Team",
+  "license": "UNLICENSED"
+}

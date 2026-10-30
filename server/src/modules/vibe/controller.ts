@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { VibeService } from './service.js';
 import { sendSuccess } from '../../utils/response.js';
+import { safeGetIO } from '../../sockets/index.js';
 
 export class VibeController {
   public static async submitVibe(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -12,6 +13,23 @@ export class VibeController {
         req.orgId!,
         req.body
       );
+
+      // Broadcast real-time update
+      const io = safeGetIO();
+      if (io) {
+        const summary = await VibeService.getVibeSummary(sessionId, req.orgId!);
+        io.to(`session:${sessionId}`).emit('vibe:updated', {
+          sessionId,
+          vibe,
+          summary,
+        });
+        io.to('dashboard').emit('vibe:updated', {
+          sessionId,
+          vibe,
+          summary,
+        });
+      }
+
       sendSuccess(res, vibe, 'Vibe check recorded');
     } catch (error) {
       next(error);

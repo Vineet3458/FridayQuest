@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
-import RoleTrialBar from '@/components/trial/RoleTrialBar';
 import Navbar from '@/components/navigation/Navbar';
 import NetworkStatusBanner from '@/components/pwa/NetworkStatusBanner';
 
@@ -71,7 +70,6 @@ export default function RootLayout({
       </head>
       <body className="min-h-screen bg-slate-50 dark:bg-[#090d16] text-slate-900 dark:text-slate-100 antialiased flex flex-col transition-colors duration-200 overflow-x-hidden selection:bg-blue-500 selection:text-white">
         <NetworkStatusBanner />
-        <RoleTrialBar />
         <Navbar />
         <div className="flex-1 flex flex-col pb-16 md:pb-8 w-full max-w-full overflow-x-hidden">
           {children}
