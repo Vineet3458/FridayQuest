@@ -2,11 +2,24 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import RoleTrialBar from '@/components/trial/RoleTrialBar';
 import Navbar from '@/components/navigation/Navbar';
+import NetworkStatusBanner from '@/components/pwa/NetworkStatusBanner';
 
 export const metadata: Metadata = {
   title: 'FridayQuest - Fun Friday Game Master',
   description: 'An offline-first Fun Friday arranger, game master and scorekeeper',
   manifest: '/manifest.json',
+  icons: {
+    icon: [
+      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+    ],
+    apple: [{ url: '/icon-192.png', sizes: '192x192' }],
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'FridayQuest',
+  },
 };
 
 export const viewport: Viewport = {
@@ -14,6 +27,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  viewportFit: 'cover',
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: '#ffffff' },
     { media: '(prefers-color-scheme: dark)', color: '#090d16' },
@@ -55,10 +69,11 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="min-h-screen bg-slate-50 dark:bg-[#090d16] text-slate-900 dark:text-slate-100 antialiased flex flex-col transition-colors duration-200">
+      <body className="min-h-screen bg-slate-50 dark:bg-[#090d16] text-slate-900 dark:text-slate-100 antialiased flex flex-col transition-colors duration-200 overflow-x-hidden selection:bg-blue-500 selection:text-white">
+        <NetworkStatusBanner />
         <RoleTrialBar />
         <Navbar />
-        <div className="flex-1 flex flex-col pb-16 md:pb-8">
+        <div className="flex-1 flex flex-col pb-16 md:pb-8 w-full max-w-full overflow-x-hidden">
           {children}
         </div>
       </body>

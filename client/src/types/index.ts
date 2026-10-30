@@ -21,6 +21,13 @@ export interface Organization {
   inviteCode: string;
 }
 
+export interface GameRoleDefinition {
+  key: string;
+  label: string;
+  count: number;
+  visible?: boolean;
+}
+
 export interface GameDefinition {
   name: string;
   slug: string;
@@ -28,10 +35,12 @@ export interface GameDefinition {
   players: { min: number; max: number };
   durationMin: number;
   energy: 'low' | 'medium' | 'high';
+  noise?: 'low' | 'medium' | 'high';
   props?: string[];
   tags?: string[];
   teamMode: 'teams' | 'individual' | 'pairs' | 'rounds-of-n';
   tools: string[];
+  roles?: GameRoleDefinition[];
   rulesShort: string;
   rulesFull: string;
 }
@@ -44,6 +53,7 @@ export interface Game {
   status: 'draft' | 'submitted' | 'approved' | 'published';
   version: number;
   definition: GameDefinition;
+  packs?: string[];
   avgRating: number;
 }
 

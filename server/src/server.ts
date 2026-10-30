@@ -5,6 +5,7 @@ import { connectDB } from './config/db.js';
 import { ENV } from './config/env.js';
 import { logger } from './utils/logger.js';
 import { seedTwentyUsers } from './seed/seedUsers.js';
+import { seedGames } from './seed/seedGames.js';
 
 async function bootstrap() {
   await connectDB();
@@ -12,8 +13,9 @@ async function bootstrap() {
   // Automatically seed the 20 users and roles on startup
   try {
     await seedTwentyUsers();
+    await seedGames();
   } catch (seedErr) {
-    logger.warn({ seedErr }, 'Notice: Automatic user seeding deferred until MongoDB connects.');
+    logger.warn({ seedErr }, 'Notice: Automatic seeding deferred until MongoDB connects.');
   }
 
   const app = createApp();

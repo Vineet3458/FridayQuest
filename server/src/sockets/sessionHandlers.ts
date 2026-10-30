@@ -259,6 +259,80 @@ export function registerSessionHandlers(io: Server, socket: Socket) {
       logger.error({ error }, 'Error in host:award');
     }
   });
+
+  // 6. Organizer Host Control: Skip Current Game
+  socket.on('host:skip', async (data: { sessionId: string }) => {
+    try {
+      if (!user || (user.role !== 'orgAdmin' && user.role !== 'organizer' && user.role !== 'superAdmin')) return;
+      const { sessionId } = data;
+      const roomName = `session:${sessionId}`;
+      const session = await Session.findById(sessionId);
+      if (!session) return;
+      const state = await SessionState.findOne({ sessionId });
+      if (!state) return;
+
+      if (state.currentGameIdx + 1 < session.agenda.length) {
+        state.currentGameIdx += 1;
+        state.stepIdx = 0;
+        state.round = 1;
+        state.roleAssignments = [];
+        state.votes = [];
+        state.buzzerState = resetBuzzer();
+        await state.save();
+        io.to(roomName).emit('game:ended', { skipped: true });
+        io.to(roomName).emit('state:update', getPublicState(state, session));
+      } else {
+        state.status = 'completed';
+        session.status = 'done';
+        await session.save();
+        await state.save();
+        io.to(roomName).emit('session:ended', { sessionId });
+        io.to(roomName).emit('state:update', getPublicState(state, session));
+      }
+    } catch (error: any) {
+      logger.error({ error }, 'Error in host:skip');
+    }
+  });
+
+  // 7. Organizer Host Control: End Session
+  socket.on('host:end', async (data: { sessionId: string }) => {
+    try {
+      if (!user || (user.role !== 'orgAdmin' && user.role !== 'organizer' && user.role !== 'superAdmin')) return;
+      const { sessionId } = data;
+      const roomName = `session:${sessionId}`;
+      const session = await Session.findById(sessionId);
+      if (!session) return;
+      const state = await SessionState.findOne({ sessionId });
+      if (!state) return;
+
+      state.status = 'completed';
+      session.status = 'done';
+      await session.save();
+      await state.save();
+      io.to(roomName).emit('session:ended', { sessionId });
+      io.to(roomName).emit('state:update', getPublicState(state, session));
+    } catch (error: any) {
+      logger.error({ error }, 'Error in host:end');
+    }
+  });
+
+  // 8. Organizer Host Control: Reset Buzzer Lockout
+  socket.on('host:reset_buzzer', async (data: { sessionId: string }) => {
+    try {
+      if (!user || (user.role !== 'orgAdmin' && user.role !== 'organizer' && user.role !== 'superAdmin')) return;
+      const { sessionId } = data;
+      const roomName = `session:${sessionId}`;
+      const state = await SessionState.findOne({ sessionId });
+      if (!state) return;
+
+      state.buzzerState = resetBuzzer();
+      await state.save();
+      io.to(roomName).emit('buzzer:reset');
+      io.to(roomName).emit('state:update', { buzzerState: state.buzzerState });
+    } catch (error: any) {
+      logger.error({ error }, 'Error in host:reset_buzzer');
+    }
+  });
 }
 
 /**

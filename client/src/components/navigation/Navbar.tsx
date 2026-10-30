@@ -29,11 +29,11 @@ export default function Navbar() {
   };
 
   const navItems = [
-    { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-    { label: 'Sessions', href: '/sessions', icon: Calendar },
-    { label: 'Game Library', href: '/games', icon: Gamepad2 },
-    { label: 'Team Maker', href: '/teams', icon: Users },
-    { label: 'Roles Matrix', href: '/roles', icon: ShieldAlert },
+    { label: 'Dashboard', shortLabel: 'Home', href: '/dashboard', icon: LayoutDashboard },
+    { label: 'Sessions', shortLabel: 'Sessions', href: '/sessions', icon: Calendar },
+    { label: 'Game Library', shortLabel: 'Games', href: '/games', icon: Gamepad2 },
+    { label: 'Team Maker', shortLabel: 'Teams', href: '/teams', icon: Users },
+    { label: 'Roles Matrix', shortLabel: 'Roles', href: '/roles', icon: ShieldAlert },
   ];
 
   // Don't show navbar on public standalone screen / projector view
@@ -167,8 +167,8 @@ export default function Navbar() {
         </div>
       </header>
 
-      {/* Mobile Bottom Navigation Bar (Fixed thumb-friendly for phone screens) */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-[#0c1222]/95 border-t border-slate-200 dark:border-slate-800/80 backdrop-blur-md z-30 pb-safe transition-colors">
+      {/* Mobile Bottom Navigation Bar (Fixed thumb-friendly for phone screens with safe-area padding) */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-[#0c1222]/95 border-t border-slate-200/90 dark:border-slate-800/80 backdrop-blur-md z-30 pb-safe transition-colors shadow-lg">
         <div className="grid grid-cols-5 h-14">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -177,7 +177,7 @@ export default function Navbar() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex flex-col items-center justify-center gap-1 transition-colors ${
+                className={`flex flex-col items-center justify-center gap-1 transition-all select-none relative ${
                   isActive
                     ? 'text-blue-600 dark:text-blue-400 font-bold'
                     : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
@@ -188,9 +188,12 @@ export default function Navbar() {
                     isActive ? 'scale-110 text-blue-600 dark:text-blue-400' : ''
                   }`}
                 />
-                <span className="text-[10px] leading-tight truncate px-1">
-                  {item.label.split(' ')[0]}
+                <span className="text-[10px] leading-tight font-medium truncate px-0.5">
+                  {item.shortLabel}
                 </span>
+                {isActive && (
+                  <span className="absolute bottom-1 w-1 h-1 rounded-full bg-blue-600 dark:bg-blue-400"></span>
+                )}
               </Link>
             );
           })}
