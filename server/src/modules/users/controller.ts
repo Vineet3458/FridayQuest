@@ -49,4 +49,14 @@ export class UsersController {
       next(error);
     }
   }
+
+  public static async seedUsers(_req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { seedTwentyUsers } = await import('../../seed/seedUsers.js');
+      const result = await seedTwentyUsers();
+      sendSuccess(res, result, 'Successfully seeded 20 users and roles');
+    } catch (error) {
+      next(error);
+    }
+  }
 }

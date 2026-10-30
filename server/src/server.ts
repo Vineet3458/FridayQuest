@@ -4,9 +4,17 @@ import { setupSocketServer } from './sockets/index.js';
 import { connectDB } from './config/db.js';
 import { ENV } from './config/env.js';
 import { logger } from './utils/logger.js';
+import { seedTwentyUsers } from './seed/seedUsers.js';
 
 async function bootstrap() {
   await connectDB();
+
+  // Automatically seed the 20 users and roles on startup
+  try {
+    await seedTwentyUsers();
+  } catch (seedErr) {
+    logger.warn({ seedErr }, 'Notice: Automatic user seeding deferred until MongoDB connects.');
+  }
 
   const app = createApp();
   const httpServer = http.createServer(app);

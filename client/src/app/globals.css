@@ -3,6 +3,18 @@
 @tailwind utilities;
 
 :root {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --card-border: #e2e8f0;
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --accent: #f59e0b;
+  --muted: #64748b;
+  color-scheme: light;
+}
+
+.dark {
   --background: #090d16;
   --foreground: #f8fafc;
   --card: #131b2e;
@@ -10,6 +22,8 @@
   --primary: #3b82f6;
   --primary-hover: #2563eb;
   --accent: #f59e0b;
+  --muted: #94a3b8;
+  color-scheme: dark;
 }
 
 body {
@@ -18,6 +32,7 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 /* Accessible tap targets */
@@ -25,3 +40,29 @@ button, input, select, a {
   min-height: 44px;
 }
 
+/* Custom scrollbars that adapt to dark / light */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}

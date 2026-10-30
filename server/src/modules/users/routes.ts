@@ -8,6 +8,9 @@ import { updateMeSchema, updateRoleSchema } from './schema.js';
 
 const router = Router();
 
+// Allow seeding endpoint
+router.post('/seed', UsersController.seedUsers);
+
 router.use(authenticate, enforceTenant);
 
 router.get('/me', UsersController.getMe);

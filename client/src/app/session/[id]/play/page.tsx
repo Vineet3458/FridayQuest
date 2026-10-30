@@ -59,34 +59,38 @@ export default function LivePlayPage() {
 
     socket.emit('session:join', { sessionId: session._id });
 
-    socket.on('state:update', (data: any) => {
-      setLiveState((prev: any) => ({ ...prev, ...data }));
+    socket.on('session:state', (state: any) => {
+      setLiveState(state);
     });
 
-    socket.on('role:assigned', (data: any) => {
+    socket.on('timer:tick', (data: { remainingSec: number }) => {
+      setRemainingSec(data.remainingSec);
+    });
+
+    socket.on('role:assigned', (data: { roleKey: string; roleLabel: string }) => {
       setAssignedRole(data);
     });
 
-    socket.on('buzzer:locked', (data: any) => {
-      setBuzzedFirst(data.userName || data.userId);
+    socket.on('buzzer:locked', (data: { winnerId: string; winnerName: string }) => {
+      setBuzzedFirst(data.winnerName);
     });
 
-    socket.on('session:ended', () => {
-      alert('Session has ended! Redirecting to dashboard...');
-      router.push('/dashboard');
+    socket.on('buzzer:reset', () => {
+      setBuzzedFirst(null);
     });
 
     return () => {
-      socket.off('state:update');
+      socket.off('session:state');
+      socket.off('timer:tick');
       socket.off('role:assigned');
       socket.off('buzzer:locked');
-      socket.off('session:ended');
+      socket.off('buzzer:reset');
     };
-  }, [session, router]);
+  }, [session]);
 
-  // 3. Countdown timer tick
+  // Local timer fallback
   useEffect(() => {
-    if (!liveState.timers?.endsAt || !liveState.timers?.running || liveState.paused) {
+    if (!liveState.timers?.running || liveState.paused || !liveState.timers?.endsAt) {
       return;
     }
 
@@ -124,43 +128,43 @@ export default function LivePlayPage() {
     <div className="flex-1 max-w-xl mx-auto w-full p-4 sm:p-6 flex flex-col justify-between select-none">
       {/* Top Header */}
       <div>
-        <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-          <Link href="/dashboard" className="p-1.5 text-slate-400 hover:text-white rounded-lg">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800 transition-colors">
+          <Link href="/dashboard" className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-lg">
             <ArrowLeft className="w-5 h-5" />
           </Link>
 
           <div className="text-center">
-            <div className="text-[10px] text-slate-400 uppercase tracking-widest font-semibold">
+            <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-widest font-semibold">
               Live Fun Friday
             </div>
-            <div className="text-sm font-bold text-white truncate max-w-[200px]">
+            <div className="text-sm font-bold text-slate-900 dark:text-white truncate max-w-[200px]">
               {session?.title || 'Game Room'}
             </div>
           </div>
 
           <div className="text-right">
-            <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-blue-950 text-blue-300 border border-blue-800">
+            <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
               {session?.joinCode || idOrCode}
             </span>
           </div>
         </div>
 
         {/* Current Game & Round */}
-        <div className="mt-4 p-4 bg-slate-900 border border-slate-800 rounded-2xl shadow-lg">
-          <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
+        <div className="mt-4 p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm dark:shadow-lg transition-colors">
+          <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-2">
             <span>Round {liveState.round || 1}</span>
-            <span className="font-semibold text-blue-400">Step {liveState.stepIdx + 1}</span>
+            <span className="font-semibold text-blue-600 dark:text-blue-400">Step {liveState.stepIdx + 1}</span>
           </div>
 
-          <h2 className="text-xl font-extrabold text-white">
+          <h2 className="text-xl font-extrabold text-slate-900 dark:text-white">
             {liveState.currentGame?.gameName || 'Game Starting Soon'}
           </h2>
 
           {/* Synchronized Server Timer */}
           {liveState.timers?.running && (
-            <div className="mt-4 flex items-center justify-center gap-2 p-3 rounded-xl bg-slate-950 border border-slate-800">
-              <Clock className="w-5 h-5 text-blue-400" />
-              <span className="text-3xl font-mono font-black tracking-wider text-white">
+            <div className="mt-4 flex items-center justify-center gap-2 p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
+              <Clock className="w-5 h-5 text-blue-500 dark:text-blue-400" />
+              <span className="text-3xl font-mono font-black tracking-wider text-slate-900 dark:text-white">
                 {String(Math.floor(remainingSec / 60)).padStart(2, '0')}:
                 {String(remainingSec % 60).padStart(2, '0')}
               </span>
@@ -173,8 +177,8 @@ export default function LivePlayPage() {
       <div className="my-6 space-y-4">
         {/* Secret Role Card Tool */}
         {assignedRole && (
-          <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl text-center space-y-3 shadow-xl">
-            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+          <div className="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-center space-y-3 shadow-sm dark:shadow-xl transition-colors">
+            <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
               Secret Role Card
             </div>
 
@@ -183,19 +187,19 @@ export default function LivePlayPage() {
               onMouseUp={() => setRevealingRole(false)}
               onTouchStart={() => setRevealingRole(true)}
               onTouchEnd={() => setRevealingRole(false)}
-              className="cursor-pointer py-8 px-4 rounded-xl border-2 border-dashed border-purple-500/50 bg-purple-950/20 active:bg-purple-900/40 transition-all flex flex-col items-center justify-center gap-2"
+              className="cursor-pointer py-8 px-4 rounded-xl border-2 border-dashed border-purple-400/50 dark:border-purple-500/50 bg-purple-50 dark:bg-purple-950/20 active:bg-purple-100 dark:active:bg-purple-900/40 transition-all flex flex-col items-center justify-center gap-2 select-none"
             >
               {revealingRole ? (
                 <>
-                  <Eye className="w-6 h-6 text-purple-300" />
-                  <div className="text-2xl font-black text-white">{assignedRole.roleLabel}</div>
-                  <div className="text-[11px] text-purple-300">Keep it secret from others!</div>
+                  <Eye className="w-6 h-6 text-purple-600 dark:text-purple-300" />
+                  <div className="text-2xl font-black text-slate-900 dark:text-white">{assignedRole.roleLabel}</div>
+                  <div className="text-[11px] text-purple-700 dark:text-purple-300">Keep it secret from others!</div>
                 </>
               ) : (
                 <>
-                  <EyeOff className="w-6 h-6 text-purple-400" />
-                  <div className="text-sm font-bold text-purple-200">Press & Hold to Reveal Role</div>
-                  <div className="text-[10px] text-slate-400">Hides when released</div>
+                  <EyeOff className="w-6 h-6 text-purple-500 dark:text-purple-400" />
+                  <div className="text-sm font-bold text-purple-800 dark:text-purple-200">Press & Hold to Reveal Role</div>
+                  <div className="text-[10px] text-slate-500 dark:text-slate-400">Hides when released</div>
                 </>
               )}
             </div>
@@ -207,9 +211,9 @@ export default function LivePlayPage() {
           <button
             onClick={handleBuzz}
             disabled={liveState.buzzerState?.locked || liveState.paused}
-            className={`w-40 h-40 mx-auto rounded-full font-black text-xl uppercase tracking-wider shadow-2xl flex flex-col items-center justify-center gap-2 transition-all transform active:scale-95 ${
+            className={`w-40 h-40 mx-auto rounded-full font-black text-xl uppercase tracking-wider shadow-2xl flex flex-col items-center justify-center gap-2 transition-all transform active:scale-95 cursor-pointer ${
               liveState.buzzerState?.locked
-                ? 'bg-slate-800 text-slate-500 border-4 border-slate-700 cursor-not-allowed'
+                ? 'bg-slate-300 dark:bg-slate-800 text-slate-500 border-4 border-slate-400 dark:border-slate-700 cursor-not-allowed'
                 : 'bg-red-600 hover:bg-red-500 text-white border-4 border-red-400 shadow-red-600/50 animate-bounce'
             }`}
           >
@@ -218,7 +222,7 @@ export default function LivePlayPage() {
           </button>
 
           {liveState.buzzerState?.locked && (
-            <div className="mt-3 text-xs text-amber-400 font-semibold">
+            <div className="mt-3 text-xs text-amber-600 dark:text-amber-400 font-semibold">
               First to buzz: {buzzedFirst || liveState.buzzerState?.lockedByUserName || 'Player'}
             </div>
           )}
@@ -227,21 +231,21 @@ export default function LivePlayPage() {
 
       {/* Organizer Host Control Bar */}
       {isOrganizer && (
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-3 shadow-2xl">
-          <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-2 text-center">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3 shadow-md dark:shadow-2xl transition-colors">
+          <div className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider mb-2 text-center">
             Organizer Host Panel
           </div>
           <div className="flex gap-2">
             <button
               onClick={handleHostPause}
-              className="flex-1 py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5"
+              className="flex-1 py-2 px-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer border border-slate-200 dark:border-transparent transition-colors"
             >
               {liveState.paused ? <Play className="w-3.5 h-3.5" /> : <Pause className="w-3.5 h-3.5" />}
               {liveState.paused ? 'Resume' : 'Pause'}
             </button>
             <button
               onClick={handleHostNext}
-              className="flex-1 py-2 px-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 shadow-md shadow-blue-500/20"
+              className="flex-1 py-2 px-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 shadow-md shadow-blue-500/20 cursor-pointer"
             >
               <FastForward className="w-3.5 h-3.5" /> Next Step
             </button>

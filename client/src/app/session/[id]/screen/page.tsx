@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { Clock, Trophy, Flame, Bell } from 'lucide-react';
 import { connectSocket } from '@/lib/socket';
 import { apiRequest } from '@/lib/api';
+import ThemeToggle from '@/components/theme/ThemeToggle';
 
 export default function ProjectorScreenPage() {
   const params = useParams();
@@ -88,22 +89,23 @@ export default function ProjectorScreenPage() {
   }, [liveState.timers, liveState.paused]);
 
   return (
-    <div className="min-h-screen bg-[#070a12] text-white p-8 flex flex-col justify-between">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#070a12] text-slate-900 dark:text-white p-6 sm:p-8 flex flex-col justify-between transition-colors">
       {/* Top Banner */}
-      <div className="flex items-center justify-between border-b border-slate-800 pb-6">
+      <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-6">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-blue-600 flex items-center justify-center font-black text-xl shadow-lg shadow-blue-500/40">
+          <div className="w-12 h-12 rounded-2xl bg-blue-600 flex items-center justify-center font-black text-xl text-white shadow-lg shadow-blue-500/40">
             FQ
           </div>
           <div>
-            <h1 className="text-2xl font-black tracking-tight">{session?.title || 'FridayQuest Live'}</h1>
-            <p className="text-sm text-slate-400">Join on your phone with code:</p>
+            <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">{session?.title || 'FridayQuest Live'}</h1>
+            <p className="text-sm text-slate-500 dark:text-slate-400">Join on your phone with code:</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
-          <div className="bg-slate-900 border-2 border-blue-500/50 rounded-2xl px-6 py-2.5 shadow-2xl">
-            <span className="font-mono text-3xl font-black tracking-widest text-blue-400">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <ThemeToggle />
+          <div className="bg-white dark:bg-slate-900 border-2 border-blue-500/50 rounded-2xl px-6 py-2.5 shadow-sm dark:shadow-2xl">
+            <span className="font-mono text-3xl font-black tracking-widest text-blue-600 dark:text-blue-400">
               {session?.joinCode || idOrCode}
             </span>
           </div>
@@ -113,21 +115,21 @@ export default function ProjectorScreenPage() {
       {/* Main TV Center Stage */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 my-auto items-center">
         {/* Game and Timer (2 cols on desktop) */}
-        <div className="lg:col-span-2 col-span-1 bg-slate-900/70 border border-slate-800 rounded-3xl p-6 sm:p-10 shadow-2xl space-y-6">
-          <div className="flex items-center gap-2 text-sm uppercase tracking-widest font-bold text-blue-400">
-            <Flame className="w-5 h-5 text-orange-400" />
+        <div className="lg:col-span-2 col-span-1 bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-10 shadow-sm dark:shadow-2xl space-y-6 transition-colors">
+          <div className="flex items-center gap-2 text-sm uppercase tracking-widest font-bold text-blue-600 dark:text-blue-400">
+            <Flame className="w-5 h-5 text-orange-500" />
             Round {liveState.round || 1} • Step {liveState.stepIdx + 1}
           </div>
 
-          <h2 className="text-5xl font-black tracking-tight text-white">
+          <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-slate-900 dark:text-white">
             {liveState.currentGame?.gameName || 'Waiting for Game to Start'}
           </h2>
 
           {/* Huge Synchronized Timer */}
           {liveState.timers?.running && (
-            <div className="inline-flex items-center gap-4 px-8 py-4 rounded-3xl bg-slate-950 border border-slate-800 shadow-inner">
-              <Clock className="w-10 h-10 text-blue-400" />
-              <span className="text-7xl font-mono font-black tracking-wider text-white">
+            <div className="inline-flex items-center gap-4 px-8 py-4 rounded-3xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 shadow-inner">
+              <Clock className="w-10 h-10 text-blue-600 dark:text-blue-400" />
+              <span className="text-5xl sm:text-7xl font-mono font-black tracking-wider text-slate-900 dark:text-white">
                 {String(Math.floor(remainingSec / 60)).padStart(2, '0')}:
                 {String(remainingSec % 60).padStart(2, '0')}
               </span>
@@ -136,17 +138,17 @@ export default function ProjectorScreenPage() {
 
           {/* Buzzer Announcement on TV */}
           {liveState.buzzerState?.locked && (
-            <div className="flex items-center gap-3 p-4 rounded-2xl bg-amber-950/60 border border-amber-800 text-amber-300 text-lg font-bold animate-pulse">
-              <Bell className="w-6 h-6 text-amber-400" />
+            <div className="flex items-center gap-3 p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-800 text-amber-800 dark:text-amber-300 text-lg font-bold animate-pulse">
+              <Bell className="w-6 h-6 text-amber-500 dark:text-amber-400" />
               First to buzz: {liveState.buzzerState?.lockedByUserName || 'Player'}
             </div>
           )}
         </div>
 
         {/* Live Leaderboard (1 col) */}
-        <div className="bg-slate-900/70 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4">
-          <div className="flex items-center gap-2 text-sm uppercase tracking-wider font-bold text-slate-400">
-            <Trophy className="w-4 h-4 text-amber-400" />
+        <div className="bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm dark:shadow-2xl space-y-4 transition-colors">
+          <div className="flex items-center gap-2 text-sm uppercase tracking-wider font-bold text-slate-500 dark:text-slate-400">
+            <Trophy className="w-4 h-4 text-amber-500" />
             Live Standings
           </div>
 
@@ -157,17 +159,17 @@ export default function ProjectorScreenPage() {
               leaderboard.map((team, idx) => (
                 <div
                   key={team.id || idx}
-                  className="flex items-center justify-between p-3.5 bg-slate-950/80 border border-slate-800 rounded-xl"
+                  className="flex items-center justify-between p-3.5 bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-xl"
                 >
                   <div className="flex items-center gap-3">
-                    <span className="font-bold text-sm text-slate-500 w-4">{idx + 1}</span>
+                    <span className="font-bold text-sm text-slate-400 dark:text-slate-500 w-4">{idx + 1}</span>
                     <div
                       className="w-3.5 h-3.5 rounded-full"
                       style={{ backgroundColor: team.color || '#3B82F6' }}
                     />
-                    <span className="font-semibold text-white text-sm">{team.name}</span>
+                    <span className="font-semibold text-slate-900 dark:text-white text-sm">{team.name}</span>
                   </div>
-                  <span className="font-mono font-bold text-base text-amber-400">
+                  <span className="font-mono font-bold text-base text-amber-600 dark:text-amber-400">
                     {team.total} pts
                   </span>
                 </div>
@@ -178,7 +180,7 @@ export default function ProjectorScreenPage() {
       </div>
 
       {/* TV Screen Footer */}
-      <div className="text-center text-xs text-slate-500 border-t border-slate-900 pt-4">
+      <div className="text-center text-xs text-slate-500 border-t border-slate-200 dark:border-slate-800 pt-4">
         FridayQuest • Projector Screen Mode • Auto-refreshes in real-time
       </div>
     </div>
