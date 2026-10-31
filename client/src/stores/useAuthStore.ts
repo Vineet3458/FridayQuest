@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { User } from '../types';
-import { apiRequest } from '../lib/api';
+import { apiRequest, clearStoredToken } from '../lib/api';
 
 interface AuthState {
   user: User | null;
@@ -18,6 +18,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       await apiRequest('/auth/logout', { method: 'POST' });
     } finally {
+      clearStoredToken();
       set({ user: null, isAuthenticated: false });
     }
   },
@@ -30,6 +31,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       }
     } catch {
       // The API is the source of truth; never retain an unverified local identity.
+      clearStoredToken();
     }
 
     set({ user: null, isAuthenticated: false });

@@ -32,7 +32,7 @@ export default function AuthenticatedAppLayout({
 
   if (isChecking) {
     return (
-      <main className="flex flex-1 items-center justify-center" aria-live="polite">
+      <main className="flex flex-1 items-center justify-center min-h-[60vh]" aria-live="polite">
         <Loader2 className="h-6 w-6 animate-spin text-blue-600" aria-label="Checking your session" />
       </main>
     );

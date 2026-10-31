@@ -26,7 +26,12 @@ export class AuthController {
       });
 
       const { tokens: _tokens, ...safeResult } = result;
-      sendSuccess(res, safeResult, 'Organization and admin account created successfully', 201);
+      sendSuccess(
+        res,
+        { ...safeResult, accessToken: result.tokens.accessToken },
+        'Organization and admin account created successfully',
+        201
+      );
     } catch (error: any) {
       next(error);
     }
@@ -48,7 +53,12 @@ export class AuthController {
       }
 
       const { tokens: _tokens, ...safeResult } = result;
-      sendSuccess(res, safeResult, 'Employee account registered successfully', 201);
+      sendSuccess(
+        res,
+        { ...safeResult, accessToken: result.tokens?.accessToken },
+        'Employee account registered successfully',
+        201
+      );
     } catch (error: any) {
       next(error);
     }
@@ -68,7 +78,11 @@ export class AuthController {
       });
 
       const { tokens: _tokens, ...safeResult } = result;
-      sendSuccess(res, safeResult, 'Login successful');
+      sendSuccess(
+        res,
+        { ...safeResult, accessToken: result.tokens.accessToken },
+        'Login successful'
+      );
     } catch (error: any) {
       next(error);
     }

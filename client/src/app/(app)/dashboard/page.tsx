@@ -28,10 +28,11 @@ export default function DashboardPage() {
     setLoadError(null);
     try {
       const response = await apiRequest<Session[]>('/sessions');
-      if (!response.success || !Array.isArray(response.data)) {
-        throw new Error(response.message || 'Unable to load sessions.');
+      if (response.success && Array.isArray(response.data)) {
+        setSessions(response.data);
+      } else {
+        setSessions([]);
       }
-      setSessions(response.data);
     } catch (error) {
       setSessions([]);
       setLoadError(error instanceof Error ? error.message : 'Unable to load dashboard data.');
@@ -70,9 +71,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const socket = connectSocket();
-    const handleConnect = () => {
-      socket.emit('dashboard:join');
-    };
+    const handleConnect = () => socket.emit('dashboard:join');
     const handleDashboardUpdate = () => void loadDashboardData();
     const handleLiveUpdate = (data?: { title?: string; summary?: { totals?: { attendingCount?: number } } }) => {
       const attendeeCount = data?.summary?.totals?.attendingCount;
@@ -81,6 +80,7 @@ export default function DashboardPage() {
       window.setTimeout(() => setRealtimeNotice(null), 4000);
       void loadDashboardData();
     };
+
     socket.on('connect', handleConnect);
     socket.on('dashboard:connected', handleConnect);
     socket.on('dashboard:update', handleDashboardUpdate);
@@ -136,6 +136,7 @@ export default function DashboardPage() {
     }
   };
 
+  // Strictly route by authenticated user role
   const dashboardView = (() => {
     switch (user?.role) {
       case 'player':
@@ -156,11 +157,24 @@ export default function DashboardPage() {
           />
         );
       case 'organizer':
-        return <OrganizerDashboardView user={user} nextSession={nextSession} />;
+        return (
+          <OrganizerDashboardView
+            user={user}
+            nextSession={nextSession}
+          />
+        );
       case 'orgAdmin':
-        return <OrgAdminDashboardView user={user} />;
+        return (
+          <OrgAdminDashboardView
+            user={user}
+          />
+        );
       case 'superAdmin':
-        return <SuperAdminDashboardView user={user} />;
+        return (
+          <SuperAdminDashboardView
+            user={user}
+          />
+        );
       default:
         return null;
     }
@@ -169,19 +183,19 @@ export default function DashboardPage() {
   return (
     <main className="flex min-h-[100dvh] w-full flex-1 flex-col">
       {realtimeNotice && (
-        <div role="status" className="flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white">
+        <div role="status" className="fixed top-4 right-4 z-50 flex items-center gap-2 rounded-2xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white shadow-lg animate-in fade-in slide-in-from-top-2">
           <Zap className="h-4 w-4" />
           {realtimeNotice}
         </div>
       )}
 
       {loadError && (
-        <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-900 dark:bg-red-950/40 dark:text-red-200">
+        <div role="alert" className="m-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-800 dark:border-red-900 dark:bg-red-950/40 dark:text-red-200">
           <span>{loadError}</span>
           <button
             type="button"
             onClick={() => void loadDashboardData()}
-            className="inline-flex items-center gap-1.5 font-semibold underline"
+            className="inline-flex items-center gap-1.5 font-bold underline cursor-pointer"
           >
             <RefreshCw className="h-3.5 w-3.5" />
             Retry
@@ -190,13 +204,13 @@ export default function DashboardPage() {
       )}
 
       {isLoading ? (
-        <div className="flex min-h-64 items-center justify-center" aria-live="polite">
-          <Loader2 className="h-6 w-6 animate-spin text-blue-600" aria-label="Loading dashboard" />
+        <div className="flex min-h-[80vh] items-center justify-center" aria-live="polite">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-600" aria-label="Loading dashboard" />
         </div>
       ) : dashboardView ? (
         dashboardView
       ) : (
-        <div role="alert" className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+        <div role="alert" className="m-6 rounded-2xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-900">
           Your account role is not recognized. Contact your organization administrator.
         </div>
       )}

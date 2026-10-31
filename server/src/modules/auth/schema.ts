@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 const passwordSchema = z
   .string()
-  .min(12, 'Password must be at least 12 characters')
+  .min(6, 'Password must be at least 6 characters')
   .max(72, 'Password must be no more than 72 characters')
   .refine((password) => Buffer.byteLength(password, 'utf8') <= 72, 'Password must be no more than 72 bytes');
 
@@ -14,7 +14,7 @@ export const registerOrgSchema = z.object({
 });
 
 export const registerEmployeeSchema = z.object({
-  inviteCode: z.string().min(4, 'Valid invite code is required'),
+  inviteCode: z.string().min(3, 'Valid invite code is required'),
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Invalid email address'),
   password: passwordSchema,
