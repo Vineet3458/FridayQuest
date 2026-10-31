@@ -236,7 +236,7 @@ export async function seedTwentyUsers() {
         name: 'Kirxa Demo Workspace',
         slug: 'kirxa-demo',
         inviteCode: 'KIRXA-7F3Q',
-        settings: { autoApprove: true, timezone: 'UTC' },
+        settings: { autoApprove: true, timezone: 'Asia/Kolkata' },
         plan: 'enterprise',
       });
       logger.info('Created organization: Kirxa Demo Workspace');

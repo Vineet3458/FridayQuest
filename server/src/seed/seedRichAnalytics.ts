@@ -133,7 +133,7 @@ export async function seedRichAnalytics() {
     } else {
       session.date = s.date;
       session.createdAt = s.createdAt;
-      session.status = s.status;
+      session.status = s.status as any;
       await session.save();
     }
     savedSessions.push(session);

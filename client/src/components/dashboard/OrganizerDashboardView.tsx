@@ -175,7 +175,16 @@ export default function OrganizerDashboardView({
                   <div className="flex items-center gap-1.5 font-medium">
                     <Calendar className="w-3.5 h-3.5 text-blue-500" />
                     <span>
-                      {nextSession?.date ? new Date(nextSession.date).toLocaleDateString() : 'Fri, Oct 30, 2026'} • {nextSession?.startTime || '4:00 PM - 5:30 PM'}
+                      {nextSession?.date
+                        ? new Date(nextSession.date).toLocaleDateString('en-US', {
+                            timeZone: 'Asia/Kolkata',
+                            weekday: 'short',
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                          })
+                        : 'Fri, Nov 6, 2026'}{' '}
+                      • {nextSession?.startTime ? `${nextSession.startTime} IST` : '4:00 PM - 5:30 PM IST'}
                     </span>
                   </div>
                   <div className="flex items-center gap-1.5 font-medium">

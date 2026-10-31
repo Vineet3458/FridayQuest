@@ -6,8 +6,21 @@ export interface User {
   name: string;
   email: string;
   role: UserRole;
+  phone?: string;
   department?: string;
+  designation?: string;
+  bio?: string;
   avatar?: string;
+  employeeId?: string;
+  favoritePlayStyle?: string;
+  snackPreference?: string;
+  slackHandle?: string;
+  location?: {
+    latitude?: number;
+    longitude?: number;
+    city?: string;
+    campus?: string;
+  } | null;
   status: UserStatus;
   orgId?: string;
   xp?: number;
