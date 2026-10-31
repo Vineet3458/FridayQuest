@@ -4,15 +4,20 @@
   "private": true,
   "description": "FridayQuest - Production-Ready Fun Friday Arranger, Game Master & Live Engine",
   "scripts": {
+    "dev:server": "npm run dev --prefix server",
+    "dev:client": "npm run dev --prefix client",
     "build": "npm run build:server && npm run build:client",
     "build:server": "npm run build --prefix server",
     "build:client": "node -e \"try{fs.rmSync('client/.next',{recursive:true,force:true})}catch(e){}\" && npm run build --prefix client",
     "start": "npm run start:server",
     "start:server": "npm run start --prefix server",
     "start:client": "npm run start --prefix client",
-    "dev:server": "npm run dev --prefix server",
-    "dev:client": "npm run dev --prefix client",
-    "test": "npm run test --prefix server"
+    "typecheck": "npm run typecheck --prefix server && npm run typecheck --prefix client",
+    "typecheck:server": "npm run typecheck --prefix server",
+    "typecheck:client": "npm run typecheck --prefix client",
+    "test": "npm run test --prefix server",
+    "seed": "npm run seed --prefix server",
+    "session:update": "node scripts/update-live-session.mjs"
   },
   "keywords": [
     "fridayquest",

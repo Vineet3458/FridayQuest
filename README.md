@@ -1,148 +1,153 @@
 # FridayQuest 🎮
 
-> **An offline-first Fun Friday arranger, game master, scorekeeper and predictor, delivered as a web app (PWA).**  
-> *Prepared for Kirxa | MVP Release 1.0*
+> **An enterprise offline-first Fun Friday arranger, game master, scorekeeper and live engine, delivered as a Progressive Web App (PWA).**  
+> *Built for high-energy workplace team building, live buzzer face-offs, and fair-play tournament dynamics.*
 
 ---
 
 ## 🚀 Overview
 
-FridayQuest solves chaotic office Fun Fridays by acting as the **game-show host inside everyone's phone**. The games are played in real life, offline, with colleagues and simple props. The web app serves as the host, referee, scorekeeper, and memory-keeper.
-
-### MVP Scope (Section 6.1)
-- **Accounts & Workspaces**: Multi-tenant company workspace registration, unique invite codes (`KIRXA-7F3Q`), role-based access (`orgAdmin`, `organizer`, `player`), user approvals.
-- **Game Library Section**: Architecture, schemas, filters, and builder ready for game definitions (games to be decided and connected in the next phase).
-- **Friday Sessions**: Scheduling, voting, agenda generation, and live status lifecycle (`voting` -> `planned` -> `live` -> `done`).
-- **Vibe Check**: 4-question mood check (attendance, energy 1-5, vibe style: active/calm/brainy, game skips).
-- **Auto Planner (Arranger)**: Pure mathematical scoring engine (`score = avgRating*0.4 + energyMatch*0.25 + freshness*0.2 + preferenceMatch*0.15`) that schedules warm-up, main event, and finale with 5-minute buffers.
-- **Team Maker**: Fair-mix algorithm running 200 greedy permutations to balance team sizes, minimize same-department clustering, and reduce repeat pairings.
-- **Live Session Engine (Phone-as-Prop)**: Real-time Socket.io rooms (`session:<id>`) powering synchronized timers, secret role cards (press-and-hold reveal), first-tap buzzers, and organizer controls.
-- **Scoring & Leaderboard**: Event-sourced point updates with live standings and simple recap.
+FridayQuest transforms office Fun Fridays into a seamless, game-show style experience. Colleagues play in real life, offline in their physical campuses (or hybrid), while their phones act as interactive controllers (buzzers, private secret role cards, live timers, and response pads). The big screen TV displays synchronized leaderboards, countdowns, and game rounds.
 
 ---
 
-## 🛠️ Tech Stack
+## 📁 Optimal Production Folder Structure
 
-### Backend
-- **Runtime & Framework**: Node.js, Express, TypeScript
-- **Database**: MongoDB + Mongoose (Multi-tenant scoped by `orgId`)
-- **Real-Time WebSockets**: Socket.io
-- **Validation**: Zod (strict schema validation on all inputs)
-- **Security**: JWT (15-min access, 7-day refresh in httpOnly cookies), bcrypt password hashing, Helmet, CORS, express-rate-limit
-- **Scoring Evaluator**: json-logic-js & safe expression evaluator (zero `eval()`)
-- **Logging**: Pino & pino-pretty
-- **Testing**: Jest + ts-jest
-
-### Frontend
-- **Framework**: Next.js 14 (App Router) + TypeScript
-- **Styling**: Tailwind CSS (Mobile-first, dark mode, accessible tap targets)
-- **State Management**: Zustand (`useAuthStore`, `useLiveSessionStore`)
-- **Data Fetching**: Native Fetch API client with credentials support
-- **Icons**: Lucide React
-- **PWA**: `manifest.json` configured for standalone installation
-
----
-
-## 📁 Project Structure
+The project follows an optimal production-level monorepo structure with strict separation of concerns, vertical slice feature modules, reusable design system primitives, centralized constants, barrel exports, and multi-stage containerization.
 
 ```text
 FridayQuest/
-├── docker-compose.yml              # MongoDB local service container
-├── README.md                       # Complete documentation
-├── .gitignore                      # Git ignore rules
+├── docker-compose.yml              # Production orchestration (Client + Server + MongoDB)
+├── package.json                    # Monorepo workspaces & root tasks (build, typecheck, seed)
+├── README.md                       # Comprehensive architecture & operational documentation
+├── .gitignore                      # Production Git ignore rules
 │
-├── server/                         # Express + TypeScript Backend
-│   ├── src/
-│   │   ├── config/                 # Env configuration & MongoDB connection
-│   │   ├── types/                  # TypeScript interfaces & Express augmentation
-│   │   ├── utils/                  # Logger, JWT, Password, Response helpers
-│   │   ├── middleware/             # Auth, Role, Tenant scoping, Validate, Error
-│   │   ├── models/                 # Organization, User, Game, Session, VibeCheck,
-│   │   │                           # Team, SessionState, ScoreEvent, Rating
-│   │   ├── engine/                 # Scoring evaluator, Game runner, Tools:
-│   │   │   └── tools/              # Timer, SecretRole, Buzzer, Scorekeeper, Voting
-│   │   ├── sockets/                # Socket.io live handlers & room broadcaster
-│   │   ├── modules/
-│   │   │   ├── auth/               # Register org, join company, login, refresh
-│   │   │   ├── users/              # User profile, approvals, role updates
-│   │   │   ├── games/              # Game Library section, builder validation & dry-run
-│   │   │   ├── sessions/           # Session management & status transitions
-│   │   │   ├── vibe/               # Vibe check submission & live analytics
-│   │   │   ├── planner/            # Auto-planner pure algorithm & alternatives
-│   │   │   ├── teams/              # Team maker fair-mix cost algorithm
-│   │   │   ├── scoring/            # Event-sourced scoring & leaderboards
-│   │   │   ├── ratings/            # Post-game feedback & ratings
-│   │   │   └── recap/              # Session recap & winners
-│   │   ├── app.ts                  # Express application setup
-│   │   └── server.ts               # HTTP & Socket.io server bootstrap
+├── scripts/                        # Maintenance, migration & operational utility scripts
+│   └── update-live-session.mjs     # Standalone session lifecycle updater
+│
+├── client/                         # Next.js 14 App Router Frontend (PWA)
+│   ├── Dockerfile                  # Multi-stage production container build
+│   ├── next.config.mjs             # Next.js configuration
+│   ├── tailwind.config.ts          # Tailwind CSS theme & plugin tokens
+│   ├── tsconfig.json               # Path aliases (@/*) & strict TS configuration
 │   ├── package.json
-│   ├── tsconfig.json
-│   ├── jest.config.js
-│   └── .env.example
+│   ├── public/                     # Static assets, icons, manifest.json
+│   └── src/
+│       ├── app/                    # Next.js 14 App Router
+│       │   ├── (auth)/             # Route group: Authentication (login, onboarding)
+│       │   ├── (app)/              # Route group: Authenticated workspace pages
+│       │   │   ├── dashboard/      # Role-based dashboards (Player, Organizer, Admin)
+│       │   │   ├── profile/        # Player profile, avatar upload & preferences
+│       │   │   ├── achievements/   # 12-badge trophy showcase & progress tiers
+│       │   │   ├── settings/       # Campus GPS verification, alert toggles, theme
+│       │   │   ├── games/          # Catalog of Fun Friday games & builder
+│       │   │   ├── sessions/       # Session scheduler & live room access
+│       │   │   ├── teams/          # AI team maker & balanced roster preview
+│       │   │   ├── analytics/      # Company participation KPIs & trend charts
+│       │   │   ├── approvals/      # Pending employee access approvals
+│       │   │   └── roles/          # Role management & permissions
+│       │   ├── session/[id]/       # Live game sessions
+│       │   │   ├── play/           # Phone controller (live buzzer, secret roles)
+│       │   │   └── screen/         # Big-screen projector / TV presentation view
+│       │   ├── globals.css         # Tailwind base, utilities & custom keyframes
+│       │   └── layout.tsx          # Root HTML layout with zero-flash theme script
+│       │
+│       ├── components/             # Component-driven architecture
+│       │   ├── ui/                 # Atomic design system primitives (Button, Card, Badge, Input, Modal)
+│       │   ├── layout/             # Shells: RoleAppShell, Sidebar, Header
+│       │   ├── navigation/         # Navbar, Breadcrumbs, NavItems
+│       │   ├── dashboard/          # PlayerDashboardView, OrganizerDashboardView, etc.
+│       │   ├── theme/              # ThemeToggle (Direct Light/Dark toggle button)
+│       │   ├── pwa/                # NetworkStatusBanner, PWA install prompts
+│       │   ├── trial/              # TrialCountdownBanner
+│       │   └── providers/          # QueryProvider, ThemeProvider, ToastProvider
+│       │
+│       ├── constants/              # Centralized platform constants (Campuses, Timezones, Routes)
+│       ├── hooks/                  # Custom React hooks & index barrel export
+│       ├── stores/                 # Global Zustand stores (Auth, Theme, Session) & barrel export
+│       ├── lib/                    # api.ts (REST client), socket.ts (WebSockets), utils.ts (cn, formatters)
+│       └── types/                  # Shared TypeScript domain models & API contracts
 │
-└── client/                         # Next.js App Router Frontend
-    ├── src/
-    │   ├── app/
-    │   │   ├── (auth)/             # Login, Register workspace, Join with invite
-    │   │   ├── (app)/              # Protected Dashboard, Sessions, Games, Teams
-    │   │   ├── session/[id]/play   # Player mobile live view (Timer, Role, Buzzer)
-    │   │   ├── session/[id]/screen # Projector / TV big-screen display
-    │   │   ├── layout.tsx
-    │   │   ├── page.tsx            # Fast room code join & hero landing
-    │   │   └── globals.css
-    │   ├── lib/                    # api.ts (REST client), socket.ts (Socket.io)
-    │   ├── stores/                 # Zustand stores (useAuthStore, useLiveSessionStore)
-    │   └── types/                  # Frontend shared types
-    ├── public/
-    │   └── manifest.json           # PWA configuration
+└── server/                         # Express + TypeScript Real-time Backend Engine
+    ├── Dockerfile                  # Multi-stage production container build
+    ├── tsconfig.json               # NodeNext module resolution & strict TS
+    ├── jest.config.js              # Unit testing configuration
     ├── package.json
-    ├── tsconfig.json
-    ├── tailwind.config.ts
-    └── next.config.mjs
+    └── src/
+        ├── app.ts                  # Express application pipeline & security middleware
+        ├── server.ts               # HTTP & Socket.IO server bootstrap
+        ├── config/                 # Environment validation (Zod) & MongoDB connection
+        ├── constants/              # Global constants (Timezone IST, Campuses, Roles)
+        ├── models/                 # Mongoose schemas (User, Session, Game, Team, etc.) & barrel export
+        ├── middleware/             # Express middlewares (Auth, Tenant, Role, Validate, Error) & barrel export
+        ├── engine/                 # Core Real-Time Fun Friday Game Engine
+        │   ├── gameRunner.ts       # State machine & round progression
+        │   ├── scoringEvaluator.ts # Safe rule evaluator (zero eval())
+        │   └── tools/              # Phone-as-Prop tools (Buzzer, Timer, SecretRole, Voting)
+        ├── modules/                # Vertical Slice Feature Modules
+        │   ├── auth/               # Login, registration, JWT refresh & cookie management
+        │   ├── users/              # User profile, GPS check-ins, employee approvals
+        │   ├── games/              # Catalog management & game definitions
+        │   ├── sessions/           # Session lifecycle (voting -> planned -> live -> recap)
+        │   ├── vibe/               # Real-time vibe checks & mood analytics
+        │   ├── planner/            # Automated agenda arrangement engine
+        │   ├── teams/              # Fair-mix 200-permutation team balancing
+        │   ├── scoring/            # Event-sourced live leaderboard & score events
+        │   ├── ratings/            # Post-session reviews & employee feedback
+        │   ├── recap/              # Automated session summaries & winner podiums
+        │   ├── analytics/          # Company participation metrics & engagement trends
+        │   └── approvals/          # Team access approval workflows
+        ├── seed/                   # Production-grade seed generators for demo & tests
+        ├── sockets/                # Socket.IO rooms, connection lifecycle & event dispatchers
+        ├── types/                  # Express augmentation & backend type declarations
+        └── utils/                  # Reusable utilities (JWT, password, response, logger, HttpError)
 ```
 
 ---
 
-## ⚡ Quick Start
+## 🛠️ Monorepo Commands
 
-### 1. Start MongoDB with Docker
-```bash
-docker compose up -d
-```
+All commands can be run directly from the project root:
 
-### 2. Start the Backend Server
 ```bash
-cd server
-npm run dev
-```
-- Server runs on: `http://localhost:5000`
-- Health check: `http://localhost:5000/api/v1/health`
+# Development (Start both client & server)
+npm run dev:server      # Starts Express API + WebSockets on :5000
+npm run dev:client      # Starts Next.js frontend on :3000
 
-### 3. Run Unit Tests (Pure Functions)
-```bash
-cd server
-npm test
-```
-Verifies:
-- Auto Planner algorithm (`plannerLogic.test.ts`)
-- Team Maker cost function & fair-mix clustering (`teamLogic.test.ts`)
-- Scoring Evaluator safe conditions without `eval()` (`scoringEvaluator.test.ts`)
+# Quality Assurance & Type Checking
+npm run typecheck       # Runs tsc --noEmit across both client & server
+npm test                # Executes Jest unit tests on pure algorithm functions
 
-### 4. Start the Frontend App
-```bash
-cd client
-npm run dev
+# Database & Session Management
+npm run seed            # Seeds official games, users, and active demo session
+npm run session:update  # Pin session status to live
+
+# Production Builds
+npm run build           # Compiles both server (tsc) and client (next build)
+npm run start           # Launches production server
 ```
-- Web App runs on: `http://localhost:3000`
 
 ---
 
-## 🔒 Security & Architecture Principles
-1. **Multi-tenant scoping**: Every authenticated request reloads the active user and role from MongoDB; organization scope is taken from that record, not from client input or stale JWT role claims.
-2. **Layered Separation**: `Route -> Controller -> Service -> Model`. Business logic resides in services and pure functions so both REST and WebSockets share identical logic.
-3. **Safe Evaluation**: Custom scoring conditions use `json-logic-js` and safe token evaluators. `eval()` is strictly prohibited.
-4. **Game Library Section**: The catalog structure and builder API are fully functional; specific games are to be decided and populated in the subsequent development step as planned.
+## 🐳 Docker Deployment
 
-### Production configuration
+To spin up the entire production stack (Frontend, Backend, and MongoDB) with persistent storage and health checks:
 
-Set `NODE_ENV=production`, `MONGO_URI`, and `CLIENT_URL` before starting the server. Provide independent `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, and `COOKIE_SECRET` values, each at least 32 characters long. The server refuses to start in production if these settings are missing or weak. Demo data is seeded only outside production; trial-role login and public seed endpoints are not available. Authentication uses httpOnly cookies, refreshes short-lived access tokens, and invalidates existing tokens at logout.
+```bash
+docker compose up --build -d
+```
+
+- **Frontend Client**: `http://localhost:3000`
+- **Backend API**: `http://localhost:5000`
+- **Health Check**: `http://localhost:5000/api/v1/health`
+- **MongoDB**: `localhost:27017`
+
+---
+
+## 🔒 Production Architecture Principles
+
+1. **Multi-Tenant Scoping**: All database queries and operations enforce `orgId` tenancy automatically via middleware.
+2. **Layered Separation (Vertical Slice)**: Modules isolate `Routes -> Controller -> Service -> Schema`.
+3. **Safe Evaluation**: Dynamic scoring and conditional mechanics execute via `json-logic-js` with zero usage of `eval()`.
+4. **Indian Standard Time (IST)**: All session scheduling, countdown timers, and event timestamps operate in `Asia/Kolkata` standard.
+5. **Atomic UI Primitives**: Standardized components (`Button`, `Card`, `Badge`, `Input`, `Modal`) ensure consistent styling and accessible interaction patterns.

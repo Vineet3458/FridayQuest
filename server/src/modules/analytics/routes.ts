@@ -8,6 +8,9 @@ const router = Router();
 
 router.use(authenticate, enforceTenant);
 
+// Player Dashboard Overview (All authenticated users including player)
+router.get('/player', AnalyticsController.getPlayerOverview);
+
 // Organization Analytics (OrgAdmin, Organizer, SuperAdmin)
 router.get(
   '/overview',

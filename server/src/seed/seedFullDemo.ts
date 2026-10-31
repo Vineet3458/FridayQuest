@@ -277,16 +277,21 @@ export async function seedFullDemo() {
   try {
     logger.info('Starting Full Demo Data Seed...');
 
-    // 1. Ensure Organizations
+    // 1. Ensure Organizations (configured for Indian Standard Time - Asia/Kolkata)
     let org = await Organization.findOne({ slug: 'kirxa-demo' });
     if (!org) {
       org = await Organization.create({
         name: 'Kirxa Labs',
         slug: 'kirxa-demo',
         inviteCode: 'KIRXA-7F3Q',
-        settings: { autoApprove: true, timezone: 'UTC' },
+        settings: { autoApprove: true, timezone: 'Asia/Kolkata' },
         plan: 'enterprise',
       });
+    } else {
+      if (org.settings?.timezone !== 'Asia/Kolkata') {
+        org.settings = { ...org.settings, timezone: 'Asia/Kolkata' };
+        await org.save();
+      }
     }
 
     const otherOrgs = [
@@ -299,7 +304,7 @@ export async function seedFullDemo() {
       if (!exists) {
         await Organization.create({
           ...o,
-          settings: { autoApprove: true, timezone: 'UTC' },
+          settings: { autoApprove: true, timezone: 'Asia/Kolkata' },
         });
       }
     }
@@ -386,24 +391,30 @@ export async function seedFullDemo() {
     let liveSession = await Session.findOne({ joinCode: 'KIRXA-DEMO' });
     const organizerUser = seededUsers.find((u) => u.role === 'organizer') || seededUsers[3];
 
-    const todayDate = new Date();
+    // Indian Standard Time (IST, UTC+5:30): Next Friday is Nov 6, 2026, 4:00 PM - 5:30 PM IST
+    const nextFridayDate = new Date('2026-11-06T16:00:00+05:30');
 
     if (!liveSession) {
       liveSession = await Session.create({
         orgId: org._id,
         organizerId: organizerUser._id,
-        title: 'Fun Friday Kickoff',
-        date: todayDate,
+        title: 'Team Innovation Challenge',
+        date: nextFridayDate,
         startTime: '16:00',
         durationMin: 90,
-        location: 'Cafeteria, Noida',
+        location: 'Innovation Lab',
         status: 'live',
         joinCode: 'KIRXA-DEMO',
         agenda: sampleAgenda,
         propsChecklist: ['Whiteboard & Markers', 'Buzzer bell sound', 'Team bandanas', 'Mic and projector'],
       });
-      logger.info('Created primary live demo session: Fun Friday Kickoff (KIRXA-DEMO)');
+      logger.info('Created primary live demo session: Team Innovation Challenge (KIRXA-DEMO) [IST Nov 6, 2026]');
     } else {
+      liveSession.title = 'Team Innovation Challenge';
+      liveSession.date = nextFridayDate;
+      liveSession.location = 'Innovation Lab';
+      liveSession.startTime = '16:00';
+      liveSession.durationMin = 90;
       liveSession.status = 'live';
       if (!liveSession.agenda || liveSession.agenda.length === 0) {
         liveSession.agenda = sampleAgenda;
@@ -498,24 +509,24 @@ export async function seedFullDemo() {
       });
     }
 
-    // 8. Ensure Upcoming & Past Sessions
+    // 8. Ensure Upcoming & Past Sessions (in Indian Standard Time)
     const otherSessions = [
       {
         title: 'Diwali Special Extravaganza',
         joinCode: 'DIWALI26',
         status: 'planned',
         location: 'Main Hall & Terrace, Noida',
-        date: new Date(Date.now() + 7 * 86400000),
+        date: new Date('2026-11-13T16:30:00+05:30'),
         startTime: '16:30',
         durationMin: 120,
       },
       {
-        title: 'Team Innovation Challenge',
-        joinCode: 'INNOV26',
+        title: 'Fun Friday Kickoff',
+        joinCode: 'KICKOFF26',
         status: 'planned',
-        location: 'Innovation Lab',
-        date: new Date(Date.now() + 21 * 86400000),
-        startTime: '15:00',
+        location: 'Cafeteria, Noida',
+        date: new Date('2026-11-20T16:00:00+05:30'),
+        startTime: '16:00',
         durationMin: 90,
       },
       {
@@ -523,7 +534,7 @@ export async function seedFullDemo() {
         joinCode: 'SEP2026',
         status: 'done',
         location: 'Cafeteria, Noida',
-        date: new Date('2026-09-23T16:00:00Z'),
+        date: new Date('2026-09-25T16:00:00+05:30'),
         startTime: '16:00',
         durationMin: 90,
       },
@@ -532,7 +543,7 @@ export async function seedFullDemo() {
         joinCode: 'AUG2026',
         status: 'done',
         location: 'Amphitheater',
-        date: new Date('2026-08-15T15:30:00Z'),
+        date: new Date('2026-08-14T15:30:00+05:30'),
         startTime: '15:30',
         durationMin: 90,
       },
@@ -541,7 +552,7 @@ export async function seedFullDemo() {
         joinCode: 'JUL2026',
         status: 'done',
         location: 'Terrace Lounge',
-        date: new Date('2026-07-28T16:00:00Z'),
+        date: new Date('2026-07-31T16:00:00+05:30'),
         startTime: '16:00',
         durationMin: 90,
       },
@@ -615,7 +626,7 @@ export async function seedFullDemo() {
       ]);
     }
 
-    logger.info('Full Demo Data Seed Completed Successfully! 🚀');
+    logger.info('Full Demo Data Seed Completed Successfully!');
     return {
       success: true,
       orgCount: 4,

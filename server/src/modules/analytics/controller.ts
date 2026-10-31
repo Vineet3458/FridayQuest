@@ -42,5 +42,14 @@ export class AnalyticsController {
       next(error);
     }
   }
+
+  public static async getPlayerOverview(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const data = await AnalyticsService.getPlayerOverview(req.user!.userId, req.orgId!);
+      sendSuccess(res, data);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 

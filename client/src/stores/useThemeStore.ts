@@ -2,30 +2,35 @@
 
 import { create } from 'zustand';
 
-export type ThemePreference = 'system' | 'light' | 'dark';
-export type ResolvedTheme = 'light' | 'dark';
+export type ThemeMode = 'light' | 'dark';
+// Backward-compatibility aliases
+export type ThemePreference = ThemeMode;
+export type ResolvedTheme = ThemeMode;
 
 interface ThemeState {
-  preference: ThemePreference;
-  resolvedTheme: ResolvedTheme;
-  setPreference: (pref: ThemePreference) => void;
+  theme: ThemeMode;
+  resolvedTheme: ThemeMode;
+  preference: ThemeMode;
+  isCustomized: boolean;
+  setTheme: (theme: ThemeMode) => void;
+  setPreference: (pref: ThemeMode) => void;
   toggleTheme: () => void;
   initTheme: () => void;
 }
 
-const getSystemTheme = (): ResolvedTheme => {
-  if (typeof window === 'undefined') return 'dark';
+const getBrowserTheme = (): ThemeMode => {
+  if (typeof window === 'undefined') return 'light';
   try {
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   } catch {
-    return 'dark';
+    return 'light';
   }
 };
 
-const applyToDocument = (resolved: ResolvedTheme) => {
+const applyToDocument = (mode: ThemeMode) => {
   if (typeof window === 'undefined') return;
   const root = document.documentElement;
-  if (resolved === 'dark') {
+  if (mode === 'dark') {
     root.classList.add('dark');
   } else {
     root.classList.remove('dark');
@@ -33,65 +38,79 @@ const applyToDocument = (resolved: ResolvedTheme) => {
 };
 
 export const useThemeStore = create<ThemeState>((set, get) => ({
-  preference: 'system', // Defaults to user's OS / device system theme
-  resolvedTheme: 'dark',
+  theme: 'light',
+  resolvedTheme: 'light',
+  preference: 'light',
+  isCustomized: false,
 
   initTheme: () => {
     if (typeof window === 'undefined') return;
 
     try {
-      const stored = localStorage.getItem('fq_theme') as ThemePreference | null;
-      // Default to 'system' unless user explicitly saved 'light' or 'dark'
-      const validPref: ThemePreference =
-        stored === 'light' || stored === 'dark' ? stored : 'system';
+      const stored = localStorage.getItem('fq_theme');
+      const browserTheme = getBrowserTheme();
 
-      const systemTheme = getSystemTheme();
-      const resolved: ResolvedTheme = validPref === 'system' ? systemTheme : validPref;
+      let activeTheme: ThemeMode;
+      let customized = false;
 
-      applyToDocument(resolved);
-      set({ preference: validPref, resolvedTheme: resolved });
+      if (stored === 'light' || stored === 'dark') {
+        activeTheme = stored;
+        customized = true;
+      } else {
+        // Automatically set according to the Default theme of the user browser
+        activeTheme = browserTheme;
+        customized = false;
+      }
 
-      // Automatically listen to real-time OS system theme changes
+      applyToDocument(activeTheme);
+      set({
+        theme: activeTheme,
+        resolvedTheme: activeTheme,
+        preference: activeTheme,
+        isCustomized: customized,
+      });
+
+      // If user hasn't explicitly toggled, update when the browser theme changes
       const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-      const handleSystemThemeChange = (e: MediaQueryListEvent) => {
-        if (get().preference === 'system') {
-          const newResolved: ResolvedTheme = e.matches ? 'dark' : 'light';
-          applyToDocument(newResolved);
-          set({ resolvedTheme: newResolved });
+      const handleBrowserThemeChange = (e: MediaQueryListEvent) => {
+        if (!get().isCustomized) {
+          const nextBrowserTheme: ThemeMode = e.matches ? 'dark' : 'light';
+          applyToDocument(nextBrowserTheme);
+          set({
+            theme: nextBrowserTheme,
+            resolvedTheme: nextBrowserTheme,
+            preference: nextBrowserTheme,
+          });
         }
       };
 
-      mediaQuery.removeEventListener('change', handleSystemThemeChange);
-      mediaQuery.addEventListener('change', handleSystemThemeChange);
+      mediaQuery.removeEventListener('change', handleBrowserThemeChange);
+      mediaQuery.addEventListener('change', handleBrowserThemeChange);
     } catch {}
   },
 
-  setPreference: (pref: ThemePreference) => {
+  setTheme: (theme: ThemeMode) => {
     if (typeof window !== 'undefined') {
       try {
-        if (pref === 'system') {
-          localStorage.removeItem('fq_theme');
-        } else {
-          localStorage.setItem('fq_theme', pref);
-        }
+        localStorage.setItem('fq_theme', theme);
       } catch {}
     }
+    applyToDocument(theme);
+    set({
+      theme,
+      resolvedTheme: theme,
+      preference: theme,
+      isCustomized: true,
+    });
+  },
 
-    const systemTheme = getSystemTheme();
-    const resolved: ResolvedTheme = pref === 'system' ? systemTheme : pref;
-    applyToDocument(resolved);
-    set({ preference: pref, resolvedTheme: resolved });
+  setPreference: (pref: ThemeMode) => {
+    get().setTheme(pref);
   },
 
   toggleTheme: () => {
-    const { preference, resolvedTheme } = get();
-    // Quick toggle:
-    // If on system -> switch to opposite of resolved
-    // If on manual -> switch back to system default!
-    if (preference === 'system') {
-      get().setPreference(resolvedTheme === 'dark' ? 'light' : 'dark');
-    } else {
-      get().setPreference('system');
-    }
+    const current = get().theme;
+    const nextTheme: ThemeMode = current === 'dark' ? 'light' : 'dark';
+    get().setTheme(nextTheme);
   },
 }));

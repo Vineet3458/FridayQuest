@@ -33,8 +33,8 @@ export function createApp(): Express {
   );
 
   // Parsers
-  app.use(express.json());
-  app.use(express.urlencoded({ extended: true }));
+  app.use(express.json({ limit: '10mb' }));
+  app.use(express.urlencoded({ extended: true, limit: '10mb' }));
   app.use(cookieParser(ENV.COOKIE_SECRET));
 
   // Rate limiting disabled per user request for seamless testing and high-frequency logins

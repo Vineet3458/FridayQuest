@@ -5,7 +5,26 @@ export class UsersService {
   public static async getMe(userId: string) {
     const user = await User.findById(userId).select('-passwordHash');
     if (!user) throw new Error('User not found');
-    return user;
+    return {
+      id: user._id.toString(),
+      name: user.name,
+      email: user.email,
+      phone: user.phone || '',
+      role: user.role,
+      department: user.department,
+      designation: user.designation || 'Team Member',
+      bio: user.bio || '',
+      avatar: user.avatar || '',
+      employeeId: user.employeeId || '',
+      favoritePlayStyle: user.favoritePlayStyle || '⚡ Active',
+      snackPreference: user.snackPreference || '☕ Masala Chai',
+      slackHandle: user.slackHandle || '',
+      location: user.location,
+      status: user.status,
+      orgId: user.orgId?.toString(),
+      xp: user.xp || 0,
+      level: user.level || 1,
+    };
   }
 
   public static async updateMe(userId: string, updateData: Record<string, any>) {
@@ -15,11 +34,38 @@ export class UsersService {
     delete updateData.passwordHash;
     delete updateData.status;
 
+    if (updateData.email) {
+      updateData.email = updateData.email.toLowerCase().trim();
+      const existing = await User.findOne({ email: updateData.email, _id: { $ne: userId } });
+      if (existing) {
+        throw new Error('Email address is already in use by another team member');
+      }
+    }
+
     const user = await User.findByIdAndUpdate(userId, { $set: updateData }, { new: true }).select(
       '-passwordHash'
     );
     if (!user) throw new Error('User not found');
-    return user;
+    return {
+      id: user._id.toString(),
+      name: user.name,
+      email: user.email,
+      phone: user.phone || '',
+      role: user.role,
+      department: user.department,
+      designation: user.designation || 'Team Member',
+      bio: user.bio || '',
+      avatar: user.avatar || '',
+      employeeId: user.employeeId || '',
+      favoritePlayStyle: user.favoritePlayStyle || '⚡ Active',
+      snackPreference: user.snackPreference || '☕ Masala Chai',
+      slackHandle: user.slackHandle || '',
+      location: user.location,
+      status: user.status,
+      orgId: user.orgId?.toString(),
+      xp: user.xp || 0,
+      level: user.level || 1,
+    };
   }
 
   public static async getOrgUsers(orgId: string) {

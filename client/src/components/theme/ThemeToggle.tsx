@@ -1,146 +1,155 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
-import { Sun, Moon, Laptop, Check } from 'lucide-react';
-import { useThemeStore, ThemePreference } from '@/stores/useThemeStore';
+import { useEffect, useState } from 'react';
+import { Sun, Moon } from 'lucide-react';
+import { useThemeStore } from '@/stores/useThemeStore';
 
 interface ThemeToggleProps {
   className?: string;
   showLabel?: boolean;
+  variant?: 'button' | 'switch' | 'segmented';
 }
 
-export default function ThemeToggle({ className = '', showLabel = false }: ThemeToggleProps) {
-  const { preference, resolvedTheme, setPreference, initTheme } = useThemeStore();
+export default function ThemeToggle({
+  className = '',
+  showLabel = false,
+  variant = 'button',
+}: ThemeToggleProps) {
+  const { theme, toggleTheme, setTheme, initTheme } = useThemeStore();
   const [mounted, setMounted] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     initTheme();
-    setMounted(false);
-    // Slight tick to avoid hydration mismatch
-    const t = setTimeout(() => setMounted(true), 10);
-    return () => clearTimeout(t);
+    setMounted(true);
   }, [initTheme]);
 
-  // Close dropdown on outside click
-  useEffect(() => {
-    const handleOutsideClick = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setMenuOpen(false);
-      }
-    };
-    if (menuOpen) {
-      document.addEventListener('mousedown', handleOutsideClick);
-    }
-    return () => document.removeEventListener('mousedown', handleOutsideClick);
-  }, [menuOpen]);
-
   if (!mounted) {
+    // Skeleton placeholder to prevent SSR hydration flicker
+    if (variant === 'switch') {
+      return (
+        <div
+          className={`w-14 h-7 rounded-full bg-slate-200 dark:bg-slate-800 animate-pulse ${className}`}
+          aria-hidden="true"
+        />
+      );
+    }
+    if (variant === 'segmented') {
+      return (
+        <div
+          className={`h-9 w-40 rounded-xl bg-slate-200 dark:bg-slate-800 animate-pulse ${className}`}
+          aria-hidden="true"
+        />
+      );
+    }
     return (
       <div
-        className={`w-9 h-9 rounded-xl bg-slate-200/60 dark:bg-slate-800/60 animate-pulse ${className}`}
+        className={`w-9 h-9 rounded-full bg-slate-200/60 dark:bg-slate-800/60 animate-pulse ${className}`}
         aria-hidden="true"
       />
     );
   }
 
-  const isDark = resolvedTheme === 'dark';
+  const isDark = theme === 'dark';
 
-  const options: { id: ThemePreference; label: string; desc: string; icon: typeof Sun }[] = [
-    {
-      id: 'system',
-      label: 'System Default',
-      desc: 'Matches your device OS theme',
-      icon: Laptop,
-    },
-    {
-      id: 'light',
-      label: 'Light Theme',
-      desc: 'Clean & high contrast',
-      icon: Sun,
-    },
-    {
-      id: 'dark',
-      label: 'Dark Theme',
-      desc: 'Deep navy & easy on eyes',
-      icon: Moon,
-    },
-  ];
-
-  return (
-    <div className={`relative inline-block ${className}`} ref={containerRef}>
+  // Variant 1: Interactive Sliding Switch (Used in Settings or prominent controls)
+  if (variant === 'switch') {
+    return (
       <button
         type="button"
-        onClick={() => setMenuOpen(!menuOpen)}
-        aria-label={`Theme: ${preference === 'system' ? 'System (' + resolvedTheme + ')' : preference}`}
-        title={`Theme: ${preference === 'system' ? 'System (' + resolvedTheme + ')' : preference} - Click to change`}
-        className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl transition-all duration-200 border select-none cursor-pointer ${
+        role="switch"
+        aria-checked={isDark}
+        aria-label={isDark ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
+        title={isDark ? 'Dark Theme active (click for Light)' : 'Light Theme active (click for Dark)'}
+        onClick={toggleTheme}
+        className={`w-14 h-7 rounded-full p-0.5 transition-colors duration-300 relative inline-flex items-center cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
           isDark
-            ? 'bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-200 shadow-sm'
-            : 'bg-white hover:bg-slate-100 border-slate-200 text-slate-700 shadow-sm'
-        }`}
+            ? 'bg-indigo-600 text-white'
+            : 'bg-amber-100 border border-amber-200 text-amber-600'
+        } ${className}`}
       >
-        <div className="relative w-4 h-4 flex items-center justify-center">
-          {preference === 'system' ? (
-            <Laptop className="w-4 h-4 text-blue-500 dark:text-blue-400" />
-          ) : preference === 'dark' ? (
-            <Moon className="w-4 h-4 text-amber-400" />
+        <span className="sr-only">Toggle theme</span>
+        {/* Sliding Knob */}
+        <span
+          className={`w-6 h-6 rounded-full bg-white dark:bg-slate-900 shadow-md transform transition-transform duration-300 flex items-center justify-center ${
+            isDark ? 'translate-x-7 text-indigo-400' : 'translate-x-0 text-amber-500'
+          }`}
+        >
+          {isDark ? (
+            <Moon className="w-3.5 h-3.5 fill-indigo-400/30" />
           ) : (
-            <Sun className="w-4 h-4 text-amber-500" />
+            <Sun className="w-3.5 h-3.5 fill-amber-500/20" />
           )}
-        </div>
-
-        {preference === 'system' ? (
-          <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20">
-            Auto
-          </span>
-        ) : showLabel ? (
-          <span className="text-xs font-semibold">
-            {preference === 'dark' ? 'Dark' : 'Light'}
-          </span>
-        ) : null}
+        </span>
       </button>
+    );
+  }
 
-      {/* Popover Selection Menu */}
-      {menuOpen && (
-        <div className="absolute right-0 mt-2 w-56 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-1.5 z-50 text-xs animate-in fade-in zoom-in-95 duration-100">
-          <div className="px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-800/80 mb-1">
-            Theme Preference
-          </div>
+  // Variant 2: Segmented Pill Toggle (Light | Dark)
+  if (variant === 'segmented') {
+    return (
+      <div
+        className={`inline-flex items-center p-1 rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 select-none ${className}`}
+      >
+        <button
+          type="button"
+          onClick={() => setTheme('light')}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            !isDark
+              ? 'bg-white text-amber-600 shadow-xs border border-amber-200/50'
+              : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+          }`}
+        >
+          <Sun className="w-3.5 h-3.5" />
+          <span>Light</span>
+        </button>
 
-          <div className="space-y-0.5">
-            {options.map((opt) => {
-              const Icon = opt.icon;
-              const isSelected = preference === opt.id;
-              return (
-                <button
-                  key={opt.id}
-                  type="button"
-                  onClick={() => {
-                    setPreference(opt.id);
-                    setMenuOpen(false);
-                  }}
-                  className={`w-full flex items-center justify-between p-2 rounded-xl text-left transition-colors cursor-pointer ${
-                    isSelected
-                      ? 'bg-blue-50 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 font-bold'
-                      : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/70'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <Icon className="w-4 h-4 shrink-0" />
-                    <div>
-                      <div className="text-xs font-semibold">{opt.label}</div>
-                      <div className="text-[10px] opacity-70 font-normal">{opt.desc}</div>
-                    </div>
-                  </div>
-                  {isSelected && <Check className="w-4 h-4 text-blue-600 dark:text-blue-400" />}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        <button
+          type="button"
+          onClick={() => setTheme('dark')}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            isDark
+              ? 'bg-indigo-600 text-white shadow-xs'
+              : 'text-slate-500 hover:text-slate-800 dark:text-slate-400'
+          }`}
+        >
+          <Moon className="w-3.5 h-3.5" />
+          <span>Dark</span>
+        </button>
+      </div>
+    );
+  }
+
+  // Variant 3: Default Single-Click Toggle Button (Header & Navbar)
+  // Perfectly matches the circular Sun/Moon button in the reference screenshot
+  return (
+    <button
+      type="button"
+      onClick={toggleTheme}
+      aria-label={isDark ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
+      title={
+        isDark
+          ? 'Currently Dark Mode — Click to switch to Light'
+          : 'Currently Light Mode — Click to switch to Dark'
+      }
+      className={`group relative inline-flex items-center justify-center gap-1.5 w-9 h-9 rounded-full transition-all duration-300 cursor-pointer select-none border focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 hover:scale-105 active:scale-95 ${
+        isDark
+          ? 'bg-slate-800/90 hover:bg-slate-700 border-slate-700 text-amber-300 shadow-xs'
+          : 'bg-amber-50 hover:bg-amber-100/90 border-amber-200/70 text-amber-500 shadow-xs'
+      } ${className}`}
+    >
+      <div className="relative w-4 h-4 flex items-center justify-center">
+        {isDark ? (
+          <Moon className="w-4 h-4 transition-transform duration-300 rotate-0 group-hover:-rotate-12 fill-amber-300/20" />
+        ) : (
+          <Sun className="w-4 h-4 transition-transform duration-300 rotate-0 group-hover:rotate-45 fill-amber-500/20" />
+        )}
+      </div>
+
+      {showLabel && (
+        <span className="text-xs font-bold mr-1">
+          {isDark ? 'Dark' : 'Light'}
+        </span>
       )}
-    </div>
+    </button>
   );
 }
