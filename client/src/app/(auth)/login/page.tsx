@@ -58,25 +58,20 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [showDemoBox, setShowDemoBox] = useState(false);
+  const [showDemoBox, setShowDemoBox] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [loggingInRole, setLoggingInRole] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const fillDemoAccount = (demoEmail: string, demoPass: string) => {
-    setEmail(demoEmail);
-    setPassword(demoPass);
-    setError(null);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const performLogin = async (loginEmail: string, loginPass: string, roleName?: string) => {
     setError(null);
     setLoading(true);
+    if (roleName) setLoggingInRole(roleName);
 
     try {
       const res = await apiRequest('/auth/login', {
         method: 'POST',
-        body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
+        body: JSON.stringify({ email: loginEmail.trim().toLowerCase(), password: loginPass }),
       });
 
       if (res.success && res.data?.user) {
@@ -90,7 +85,20 @@ export default function LoginPage() {
       setError(err?.message || 'Unable to connect to the authentication server. Please check your credentials.');
     } finally {
       setLoading(false);
+      setLoggingInRole(null);
     }
+  };
+
+  const fillDemoAccount = async (demoEmail: string, demoPass: string, roleName: string) => {
+    setEmail(demoEmail);
+    setPassword(demoPass);
+    // Instant one-click sign in for seamless testing across roles
+    await performLogin(demoEmail, demoPass, roleName);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await performLogin(email, password);
   };
 
   return (
@@ -223,26 +231,34 @@ export default function LoginPage() {
                 Click any role below to populate credentials and test that specific role&apos;s theme:
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                {DEMO_ACCOUNTS.map((acc) => (
-                  <button
-                    key={acc.role}
-                    type="button"
-                    onClick={() => fillDemoAccount(acc.email, acc.password)}
-                    className="flex flex-col text-left p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-blue-500 dark:hover:border-blue-500 hover:bg-blue-50/40 dark:hover:bg-blue-950/20 transition-all cursor-pointer group"
-                  >
-                    <div className="flex items-center justify-between w-full mb-1">
-                      <span className="font-bold text-slate-800 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400">
-                        {acc.role}
-                      </span>
-                      <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-medium ${acc.badgeColor}`}>
-                        {acc.badge}
-                      </span>
-                    </div>
-                    <span className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
-                      {acc.email}
-                    </span>
-                  </button>
-                ))}
+                {DEMO_ACCOUNTS.map((acc) => {
+                  const isCurrentLoggingIn = loggingInRole === acc.role;
+                  return (
+                    <button
+                      key={acc.role}
+                      type="button"
+                      disabled={loading}
+                      onClick={() => fillDemoAccount(acc.email, acc.password, acc.role)}
+                      className="flex flex-col text-left p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-blue-500 dark:hover:border-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-950/30 transition-all cursor-pointer group disabled:opacity-50 relative overflow-hidden"
+                    >
+                      <div className="flex items-center justify-between w-full mb-1">
+                        <span className="font-bold text-slate-800 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 flex items-center gap-1.5">
+                          {acc.role}
+                          {isCurrentLoggingIn && <Loader2 className="w-3 h-3 animate-spin text-blue-600" />}
+                        </span>
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-medium ${acc.badgeColor}`}>
+                          {acc.badge}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+                        <span className="truncate">{acc.email}</span>
+                        <span className="text-[10px] text-blue-600 dark:text-blue-400 font-bold ml-1 shrink-0 group-hover:underline">
+                          {isCurrentLoggingIn ? 'Signing in...' : '1-Click Login →'}
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}

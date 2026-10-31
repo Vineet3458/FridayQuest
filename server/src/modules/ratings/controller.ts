@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { RatingsService } from './service.js';
 import { sendSuccess } from '../../utils/response.js';
+import { safeGetIO } from '../../sockets/index.js';
 
 export class RatingsController {
   public static async submitRating(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -12,6 +13,15 @@ export class RatingsController {
         req.orgId!,
         req.body
       );
+
+      const io = safeGetIO();
+      if (io) {
+        io.to(`session:${sessionId}`).emit('rating:submitted', rating);
+        io.to(`org:${req.orgId}`).emit('rating:submitted', rating);
+        io.to(`org:${req.orgId}`).emit('analytics:update');
+        io.to(`org:${req.orgId}`).emit('dashboard:update');
+      }
+
       sendSuccess(res, rating, 'Rating submitted successfully');
     } catch (error) {
       next(error);

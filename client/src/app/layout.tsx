@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import NetworkStatusBanner from '@/components/pwa/NetworkStatusBanner';
+import QueryProvider from '@/components/providers/QueryProvider';
 
 export const metadata: Metadata = {
   title: 'FridayQuest - Fun Friday Game Master',
@@ -68,10 +69,12 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-screen bg-slate-50 dark:bg-[#090d16] text-slate-900 dark:text-slate-100 antialiased flex flex-col transition-colors duration-200 overflow-x-hidden selection:bg-blue-500 selection:text-white">
-        <NetworkStatusBanner />
-        <div className="flex-1 flex flex-col w-full max-w-full overflow-x-hidden">
-          {children}
-        </div>
+        <QueryProvider>
+          <NetworkStatusBanner />
+          <div className="flex-1 flex flex-col w-full max-w-full overflow-x-hidden">
+            {children}
+          </div>
+        </QueryProvider>
       </body>
     </html>
   );

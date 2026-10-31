@@ -141,7 +141,20 @@ export class AuthService {
   }
 
   public static async login(input: { email: string; password: string }) {
-    const user = await User.findOne({ email: input.email.toLowerCase() }).select('+tokenVersion');
+    let cleanEmail = (input.email || '').trim().toLowerCase();
+
+    // Convenience shorthand aliases for demo & dev roles
+    if (cleanEmail === 'superadmin' || cleanEmail === 'super-admin' || cleanEmail === 'superadmin@fridayquest.com') {
+      cleanEmail = 'superadmin@kirxa.demo';
+    } else if (cleanEmail === 'amit' || cleanEmail === 'orgadmin' || cleanEmail === 'admin' || cleanEmail === 'amit@kirxa.demo') {
+      cleanEmail = 'amit.admin@kirxa.demo';
+    } else if (cleanEmail === 'organizer' || cleanEmail === 'riya' || cleanEmail === 'host') {
+      cleanEmail = 'organizer@kirxa.demo';
+    } else if (cleanEmail === 'player' || cleanEmail === 'kirxa' || cleanEmail === 'employee') {
+      cleanEmail = 'player@kirxa.demo';
+    }
+
+    const user = await User.findOne({ email: cleanEmail }).select('+tokenVersion');
     if (!user) {
       throw new HttpError('Invalid email or password.', 401);
     }

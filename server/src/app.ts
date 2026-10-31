@@ -2,7 +2,6 @@ import express, { Express } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
-import rateLimit from 'express-rate-limit';
 
 import { ENV } from './config/env.js';
 import { errorHandler } from './middleware/error.js';
@@ -18,6 +17,8 @@ import teamsRoutes from './modules/teams/routes.js';
 import scoringRoutes from './modules/scoring/routes.js';
 import ratingsRoutes from './modules/ratings/routes.js';
 import recapRoutes from './modules/recap/routes.js';
+import analyticsRoutes from './modules/analytics/routes.js';
+import approvalsRoutes from './modules/approvals/routes.js';
 
 export function createApp(): Express {
   const app = express();
@@ -36,25 +37,7 @@ export function createApp(): Express {
   app.use(express.urlencoded({ extended: true }));
   app.use(cookieParser(ENV.COOKIE_SECRET));
 
-  // Rate Limiter on Auth
-  const authLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 mins
-    max: 100,
-    message: { success: false, message: 'Too many requests, please try again later.' },
-    standardHeaders: true,
-    legacyHeaders: false,
-  });
-  app.use('/api/v1/auth', authLimiter);
-  app.use(
-    '/api/v1/auth/login',
-    rateLimit({
-      windowMs: 15 * 60 * 1000,
-      max: 10,
-      message: { success: false, message: 'Too many login attempts. Please try again later.' },
-      standardHeaders: true,
-      legacyHeaders: false,
-    })
-  );
+  // Rate limiting disabled per user request for seamless testing and high-frequency logins
 
   // Health check route
   app.get('/api/v1/health', (_req, res) => {
@@ -78,6 +61,8 @@ export function createApp(): Express {
   app.use('/api/v1/sessions/:id/scores', scoringRoutes);
   app.use('/api/v1/sessions/:id/ratings', ratingsRoutes);
   app.use('/api/v1/sessions/:id/recap', recapRoutes);
+  app.use('/api/v1/analytics', analyticsRoutes);
+  app.use('/api/v1/approvals', approvalsRoutes);
 
   // Global Error Handler
   app.use(errorHandler);

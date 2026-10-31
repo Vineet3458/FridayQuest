@@ -251,22 +251,24 @@ export default function RoleAppShell({ children }: RoleAppShellProps) {
                 </Link>
 
                 <Link
-                  href="/roles"
+                  href="/analytics"
                   onClick={() => setMobileMenuOpen(false)}
                   className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl transition-all ${
-                    isLinkActive('/roles') ? activeClass : inactiveClass
+                    isLinkActive('/analytics') ? activeClass : inactiveClass
                   }`}
                 >
-                  <BarChart2 className={`w-4 h-4 ${isLinkActive('/roles') ? 'text-white' : 'text-sky-600'}`} />
+                  <BarChart2 className={`w-4 h-4 ${isLinkActive('/analytics') ? 'text-white' : 'text-sky-600'}`} />
                   <span>Analytics</span>
                 </Link>
 
                 <Link
-                  href="/roles"
+                  href="/approvals"
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl transition-all ${inactiveClass}`}
+                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl transition-all ${
+                    isLinkActive('/approvals') ? activeClass : inactiveClass
+                  }`}
                 >
-                  <CheckSquare className="w-4 h-4 text-emerald-600" />
+                  <CheckSquare className={`w-4 h-4 ${isLinkActive('/approvals') ? 'text-white' : 'text-emerald-600'}`} />
                   <span>Approvals</span>
                 </Link>
 
@@ -373,13 +375,13 @@ export default function RoleAppShell({ children }: RoleAppShellProps) {
                 </Link>
 
                 <Link
-                  href="/roles"
+                  href="/analytics"
                   onClick={() => setMobileMenuOpen(false)}
                   className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl transition-all ${
-                    isLinkActive('/roles') ? activeClass : inactiveClass
+                    isLinkActive('/analytics') ? activeClass : inactiveClass
                   }`}
                 >
-                  <BarChart2 className={`w-4 h-4 ${isLinkActive('/roles') ? 'text-white' : 'text-indigo-400'}`} />
+                  <BarChart2 className={`w-4 h-4 ${isLinkActive('/analytics') ? 'text-white' : 'text-indigo-400'}`} />
                   <span>Analytics</span>
                 </Link>
 
@@ -494,17 +496,17 @@ export default function RoleAppShell({ children }: RoleAppShellProps) {
                   }`}
                 >
                   <Users className={`w-4 h-4 ${isLinkActive('/teams') ? 'text-white' : 'text-amber-600'}`} />
-                  <span>My Teams</span>
+                  <span>My Team</span>
                 </Link>
 
                 <Link
-                  href="/roles"
+                  href="/analytics"
                   onClick={() => setMobileMenuOpen(false)}
                   className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl transition-all ${
-                    isLinkActive('/roles') ? activeClass : inactiveClass
+                    isLinkActive('/analytics') ? activeClass : inactiveClass
                   }`}
                 >
-                  <TrendingUp className={`w-4 h-4 ${isLinkActive('/roles') ? 'text-white' : 'text-emerald-600'}`} />
+                  <TrendingUp className={`w-4 h-4 ${isLinkActive('/analytics') ? 'text-white' : 'text-emerald-600'}`} />
                   <span>My Progress</span>
                 </Link>
 
@@ -562,7 +564,7 @@ export default function RoleAppShell({ children }: RoleAppShellProps) {
         return 'bg-[#0B101D] text-white';
       case 'player':
       default:
-        return 'bg-[#F4F5FD] dark:bg-slate-900 text-slate-900 dark:text-slate-100';
+        return 'bg-gradient-to-br from-[#EEF4FF] via-[#F8FAFC] to-[#F5EEFB] dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950/40 text-slate-900 dark:text-slate-100';
     }
   })();
 
@@ -576,7 +578,7 @@ export default function RoleAppShell({ children }: RoleAppShellProps) {
         return 'border-slate-800/80 bg-[#090D16]';
       case 'player':
       default:
-        return 'border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-950';
+        return 'border-slate-200/70 dark:border-slate-800/80 bg-white/95 dark:bg-slate-950/95 backdrop-blur-md';
     }
   })();
 
@@ -590,7 +592,7 @@ export default function RoleAppShell({ children }: RoleAppShellProps) {
         return 'border-slate-800 bg-[#0B0F19]';
       case 'player':
       default:
-        return 'border-slate-200/80 dark:border-slate-800/80 bg-white/90 dark:bg-slate-950/80';
+        return 'border-slate-200/70 dark:border-slate-800/80 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md';
     }
   })();
 
@@ -604,7 +606,7 @@ export default function RoleAppShell({ children }: RoleAppShellProps) {
         return 'bg-slate-950 border-slate-800 text-white placeholder:text-slate-500 focus:ring-blue-500';
       case 'player':
       default:
-        return 'bg-[#F1F3F9] dark:bg-slate-900 border-transparent dark:border-slate-800 placeholder:text-slate-400 focus:ring-blue-500';
+        return 'bg-white dark:bg-slate-900 border-slate-200/90 dark:border-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-blue-500 shadow-xs';
     }
   })();
 
