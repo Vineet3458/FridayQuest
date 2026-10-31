@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { useAuthStore } from '@/stores/useAuthStore';
+import RoleAppShell from '@/components/layout/RoleAppShell';
 
 export default function AuthenticatedAppLayout({
   children,
@@ -38,5 +39,5 @@ export default function AuthenticatedAppLayout({
     );
   }
 
-  return children;
+  return <RoleAppShell>{children}</RoleAppShell>;
 }

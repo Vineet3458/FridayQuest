@@ -2,26 +2,15 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import {
   Calendar,
   Gamepad2,
   Users,
-  Search,
-  Bell,
-  Settings,
-  LayoutDashboard,
-  User,
   BarChart2,
   CheckSquare,
   ShieldCheck,
   Star,
-  LogOut,
-  Menu,
-  X,
 } from 'lucide-react';
-import ThemeToggle from '@/components/theme/ThemeToggle';
-import { useAuthStore } from '@/stores/useAuthStore';
 
 interface OrgAdminDashboardViewProps {
   user?: any;
@@ -30,259 +19,15 @@ interface OrgAdminDashboardViewProps {
 
 export default function OrgAdminDashboardView({
   user,
-  isCompact = false,
 }: OrgAdminDashboardViewProps) {
-  const router = useRouter();
-  const logout = useAuthStore((s) => s.logout);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [timeFilter, setTimeFilter] = useState('Last 30 Days');
   const [chartFilter] = useState('Last 6 Months');
 
-  const handleLogout = async () => {
-    await logout();
-    router.push('/login');
-  };
-
   const displayName = user?.name || 'Amit Verma';
-  const userInitials = displayName.slice(0, 2).toUpperCase();
 
   return (
-    <div className="min-h-[100dvh] w-full bg-[#F0F7FF] dark:bg-slate-900 text-slate-900 dark:text-slate-100 flex flex-col md:flex-row transition-colors">
-      {/* 1. Sidebar - Clean Enterprise Corporate White */}
-      <aside
-        className={`${
-          isCompact ? 'w-52 p-3' : 'w-60 p-4'
-        } shrink-0 border-r border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-950 hidden md:flex flex-col justify-between shadow-xs`}
-      >
-        <div className="space-y-5">
-          {/* Corporate FQ Logo */}
-          <div className="flex items-center gap-2.5 px-1 pt-1">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 via-sky-600 to-blue-500 flex items-center justify-center font-black text-white text-xs tracking-wider shadow-md shadow-blue-500/25">
-              FQ
-            </div>
-            <span className="font-extrabold text-base tracking-tight text-slate-900 dark:text-white">
-              FridayQuest
-            </span>
-          </div>
-
-          {/* Navigation Links */}
-          <nav className="space-y-1 text-xs">
-            {/* Active Dashboard item - Solid vibrant blue pill */}
-            <button
-              type="button"
-              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl font-bold bg-[#2563EB] text-white shadow-xs transition-all"
-            >
-              <LayoutDashboard className="w-4 h-4" />
-              <span>Dashboard</span>
-            </button>
-            <Link
-              href="/teams"
-              className="flex items-center gap-2.5 px-3 py-2 rounded-xl font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors"
-            >
-              <Users className="w-4 h-4 text-blue-600" />
-              <span>Employees</span>
-            </Link>
-            <Link
-              href="/sessions"
-              className="flex items-center gap-2.5 px-3 py-2 rounded-xl font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors"
-            >
-              <Calendar className="w-4 h-4 text-indigo-600" />
-              <span>Sessions</span>
-            </Link>
-            <Link
-              href="/games"
-              className="flex items-center gap-2.5 px-3 py-2 rounded-xl font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors"
-            >
-              <Gamepad2 className="w-4 h-4 text-purple-600" />
-              <span>Game Library</span>
-            </Link>
-            <Link
-              href="/roles"
-              className="flex items-center gap-2.5 px-3 py-2 rounded-xl font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors"
-            >
-              <BarChart2 className="w-4 h-4 text-sky-600" />
-              <span>Analytics</span>
-            </Link>
-            <Link
-              href="/roles"
-              className="flex items-center gap-2.5 px-3 py-2 rounded-xl font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors"
-            >
-              <CheckSquare className="w-4 h-4 text-emerald-600" />
-              <span>Approvals</span>
-            </Link>
-            <Link
-              href="/teams"
-              className="flex items-center gap-2.5 px-3 py-2 rounded-xl font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors"
-            >
-              <Users className="w-4 h-4 text-amber-600" />
-              <span>Teams</span>
-            </Link>
-          </nav>
-        </div>
-
-        {/* Sidebar Footer */}
-        <div className="pt-3 border-t border-slate-200/80 dark:border-slate-800/80 space-y-1 text-xs">
-          <Link
-            href="/roles"
-            className="flex items-center gap-2.5 px-3 py-2 rounded-xl font-medium text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors"
-          >
-            <User className="w-4 h-4" />
-            <span>Profile</span>
-          </Link>
-          <Link
-            href="/roles"
-            className="flex items-center gap-2.5 px-3 py-2 rounded-xl font-medium text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors"
-          >
-            <Settings className="w-4 h-4" />
-            <span>Settings</span>
-          </Link>
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl font-medium text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer text-left"
-          >
-            <LogOut className="w-4 h-4" />
-            <span>Sign Out</span>
-          </button>
-        </div>
-      </aside>
-
-      {/* 2. Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Top Header */}
-        <header className="px-4 sm:px-6 py-3 border-b border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between gap-3 bg-white/90 dark:bg-slate-950/80 backdrop-blur sticky top-0 z-20">
-          {/* Mobile hamburger menu toggle */}
-          <div className="flex items-center gap-2 md:hidden">
-            <button
-              type="button"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
-              aria-label="Toggle navigation menu"
-            >
-              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-blue-600 via-sky-600 to-blue-500 flex items-center justify-center font-black text-white text-[10px]">
-              FQ
-            </div>
-          </div>
-
-          {/* Light-blue tinted search input */}
-          <div className="relative flex-1 max-w-md">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-            <input
-              type="text"
-              placeholder="Search employees, sessions..."
-              className="w-full bg-[#F1F5F9] dark:bg-slate-900 border border-transparent dark:border-slate-800 rounded-full pl-9 pr-4 py-2 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-            />
-          </div>
-
-          {/* Right Header Utilities */}
-          <div className="flex items-center gap-2 sm:gap-2.5">
-            <button
-              type="button"
-              className="p-2 rounded-full text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 relative transition-colors"
-              title="Notifications"
-            >
-              <Bell className="w-4 h-4" />
-              <span className="w-2 h-2 rounded-full bg-rose-500 absolute top-1.5 right-1.5 ring-2 ring-white dark:ring-slate-900"></span>
-            </button>
-
-            <ThemeToggle />
-
-            {/* Avatar - Clean Production Role Pill */}
-            <div className="flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-slate-800">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-black text-xs flex items-center justify-center ring-2 ring-blue-500/20">
-                {userInitials}
-              </div>
-              <div className="text-left hidden sm:block leading-tight">
-                <div className="text-xs font-bold text-slate-900 dark:text-white">{displayName}</div>
-                <div className="text-[10px] text-blue-600 dark:text-blue-400 font-medium capitalize">
-                  {user?.role || 'Org Admin'}
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="hidden sm:inline-flex p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors ml-1 cursor-pointer"
-                title="Sign Out"
-              >
-                <LogOut className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          </div>
-        </header>
-
-        {/* Mobile Navigation Drawer */}
-        {mobileMenuOpen && (
-          <div className="md:hidden bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 p-4 space-y-3 animate-in slide-in-from-top duration-200">
-            <nav className="space-y-1 text-xs">
-              <button
-                type="button"
-                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl font-bold bg-[#2563EB] text-white shadow-xs"
-              >
-                <LayoutDashboard className="w-4 h-4" />
-                <span>Dashboard</span>
-              </button>
-              <Link
-                href="/teams"
-                className="flex items-center gap-2.5 px-3 py-2 rounded-xl font-semibold text-slate-600 dark:text-slate-400"
-              >
-                <Users className="w-4 h-4 text-blue-600" />
-                <span>Employees</span>
-              </Link>
-              <Link
-                href="/sessions"
-                className="flex items-center gap-2.5 px-3 py-2 rounded-xl font-semibold text-slate-600 dark:text-slate-400"
-              >
-                <Calendar className="w-4 h-4 text-indigo-600" />
-                <span>Sessions</span>
-              </Link>
-              <Link
-                href="/games"
-                className="flex items-center gap-2.5 px-3 py-2 rounded-xl font-semibold text-slate-600 dark:text-slate-400"
-              >
-                <Gamepad2 className="w-4 h-4 text-purple-600" />
-                <span>Game Library</span>
-              </Link>
-              <Link
-                href="/roles"
-                className="flex items-center gap-2.5 px-3 py-2 rounded-xl font-semibold text-slate-600 dark:text-slate-400"
-              >
-                <BarChart2 className="w-4 h-4 text-sky-600" />
-                <span>Analytics</span>
-              </Link>
-              <Link
-                href="/roles"
-                className="flex items-center gap-2.5 px-3 py-2 rounded-xl font-semibold text-slate-600 dark:text-slate-400"
-              >
-                <CheckSquare className="w-4 h-4 text-emerald-600" />
-                <span>Approvals</span>
-              </Link>
-              <Link
-                href="/teams"
-                className="flex items-center gap-2.5 px-3 py-2 rounded-xl font-semibold text-slate-600 dark:text-slate-400"
-              >
-                <Users className="w-4 h-4 text-amber-600" />
-                <span>Teams</span>
-              </Link>
-            </nav>
-            <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
-              <span className="text-slate-500">{displayName} ({user?.role || 'Org Admin'})</span>
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="text-rose-600 font-bold hover:underline flex items-center gap-1"
-              >
-                <LogOut className="w-3.5 h-3.5" />
-                <span>Sign Out</span>
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Dashboard Content Container */}
-        <div className="p-4 sm:p-6 lg:p-7 space-y-6 max-w-7xl mx-auto w-full">
-          {/* HEADER TITLE WITH TIME FILTER DROPDOWN */}
+    <div className="p-4 sm:p-6 lg:p-7 space-y-6 max-w-7xl mx-auto w-full">
+      {/* HEADER TITLE WITH TIME FILTER DROPDOWN */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h2 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white">
@@ -532,7 +277,5 @@ export default function OrgAdminDashboardView({
             </div>
           </div>
         </div>
-      </div>
-    </div>
   );
 }
