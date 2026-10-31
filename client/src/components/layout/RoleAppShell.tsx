@@ -26,10 +26,12 @@ import {
   CheckSquare,
   FileText,
   TrendingUp,
+  MapPin,
 } from 'lucide-react';
 import ThemeToggle from '@/components/theme/ThemeToggle';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { UserRole } from '@/types';
+import { useGeolocation } from '@/hooks/useGeolocation';
 
 interface RoleAppShellProps {
   children: React.ReactNode;
@@ -41,6 +43,7 @@ export default function RoleAppShell({ children }: RoleAppShellProps) {
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { coordinates, requestLocationPermission } = useGeolocation();
 
   const role: UserRole = user?.role || 'player';
   const displayName =
@@ -157,21 +160,23 @@ export default function RoleAppShell({ children }: RoleAppShellProps) {
 
             <div className="pt-3 border-t border-amber-200/70 dark:border-slate-800/80 space-y-1 text-xs">
               <Link
-                href="/roles"
+                href="/profile"
                 onClick={() => setMobileMenuOpen(false)}
                 className={`flex items-center gap-2.5 px-3 py-2 rounded-xl transition-all ${
-                  isLinkActive('/roles') ? activeClass : 'font-medium text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-amber-100/40 dark:hover:bg-slate-800/60'
+                  isLinkActive('/profile') ? activeClass : 'font-medium text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-amber-100/40 dark:hover:bg-slate-800/60'
                 }`}
               >
-                <User className={`w-4 h-4 ${isLinkActive('/roles') ? 'text-white' : 'text-slate-500'}`} />
+                <User className={`w-4 h-4 ${isLinkActive('/profile') ? 'text-white' : 'text-slate-500'}`} />
                 <span>Profile</span>
               </Link>
               <Link
-                href="/roles"
+                href="/settings"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2.5 px-3 py-2 rounded-xl font-medium text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-amber-100/40 dark:hover:bg-slate-800/60 transition-colors"
+                className={`flex items-center gap-2.5 px-3 py-2 rounded-xl transition-all ${
+                  isLinkActive('/settings') ? activeClass : 'font-medium text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-amber-100/40 dark:hover:bg-slate-800/60'
+                }`}
               >
-                <Settings className="w-4 h-4" />
+                <Settings className={`w-4 h-4 ${isLinkActive('/settings') ? 'text-white' : 'text-slate-500'}`} />
                 <span>Settings</span>
               </Link>
               <button
@@ -285,19 +290,23 @@ export default function RoleAppShell({ children }: RoleAppShellProps) {
 
             <div className="pt-3 border-t border-slate-200/80 dark:border-slate-800/80 space-y-1 text-xs">
               <Link
-                href="/roles"
+                href="/profile"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2.5 px-3 py-2 rounded-xl font-medium text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors"
+                className={`flex items-center gap-2.5 px-3 py-2 rounded-xl transition-all ${
+                  isLinkActive('/profile') ? activeClass : 'font-medium text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60'
+                }`}
               >
-                <User className="w-4 h-4" />
+                <User className={`w-4 h-4 ${isLinkActive('/profile') ? 'text-white' : 'text-slate-500'}`} />
                 <span>Profile</span>
               </Link>
               <Link
-                href="/roles"
+                href="/settings"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2.5 px-3 py-2 rounded-xl font-medium text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors"
+                className={`flex items-center gap-2.5 px-3 py-2 rounded-xl transition-all ${
+                  isLinkActive('/settings') ? activeClass : 'font-medium text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60'
+                }`}
               >
-                <Settings className="w-4 h-4" />
+                <Settings className={`w-4 h-4 ${isLinkActive('/settings') ? 'text-white' : 'text-slate-500'}`} />
                 <span>Settings</span>
               </Link>
               <button
@@ -516,11 +525,13 @@ export default function RoleAppShell({ children }: RoleAppShellProps) {
                 </Link>
 
                 <Link
-                  href="/roles"
+                  href="/achievements"
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl transition-all ${inactiveClass}`}
+                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl transition-all ${
+                    isLinkActive('/achievements') ? activeClass : inactiveClass
+                  }`}
                 >
-                  <Trophy className="w-4 h-4 text-amber-500" />
+                  <Trophy className={`w-4 h-4 ${isLinkActive('/achievements') ? 'text-white' : 'text-amber-500'}`} />
                   <span>Achievements</span>
                 </Link>
               </nav>
@@ -542,19 +553,23 @@ export default function RoleAppShell({ children }: RoleAppShellProps) {
 
             <div className="pt-3 border-t border-slate-200/80 dark:border-slate-800/80 space-y-1 text-xs">
               <Link
-                href="/roles"
+                href="/profile"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2.5 px-3 py-2 rounded-xl font-medium text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors"
+                className={`flex items-center gap-2.5 px-3 py-2 rounded-xl transition-all ${
+                  isLinkActive('/profile') ? activeClass : 'font-medium text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60'
+                }`}
               >
-                <User className="w-4 h-4" />
+                <User className={`w-4 h-4 ${isLinkActive('/profile') ? 'text-white' : 'text-slate-500'}`} />
                 <span>Profile</span>
               </Link>
               <Link
-                href="/roles"
+                href="/settings"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2.5 px-3 py-2 rounded-xl font-medium text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors"
+                className={`flex items-center gap-2.5 px-3 py-2 rounded-xl transition-all ${
+                  isLinkActive('/settings') ? activeClass : 'font-medium text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60'
+                }`}
               >
-                <Settings className="w-4 h-4" />
+                <Settings className={`w-4 h-4 ${isLinkActive('/settings') ? 'text-white' : 'text-slate-500'}`} />
                 <span>Settings</span>
               </Link>
               <button
@@ -741,6 +756,28 @@ export default function RoleAppShell({ children }: RoleAppShellProps) {
 
             <ThemeToggle />
 
+            {/* Live Location Check-In Pill */}
+            {coordinates?.city ? (
+              <div
+                className="hidden lg:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200/70 dark:border-emerald-800 text-[11px] font-bold shadow-2xs"
+                title={`Coordinates: ${coordinates.latitude.toFixed(4)}, ${coordinates.longitude.toFixed(4)}`}
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <MapPin className="w-3.5 h-3.5 text-emerald-600" />
+                <span>{coordinates.campus || coordinates.city}</span>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={requestLocationPermission}
+                className="hidden lg:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-[11px] font-bold transition-colors cursor-pointer"
+                title="Click to allow campus location check-in"
+              >
+                <MapPin className="w-3.5 h-3.5 text-rose-500" />
+                <span>Verify Location</span>
+              </button>
+            )}
+
             {/* TV View shortcut */}
             <Link
               href="/sessions"
@@ -751,18 +788,31 @@ export default function RoleAppShell({ children }: RoleAppShellProps) {
             </Link>
 
             {/* User Avatar - Clean Role Pill */}
-            <div className="flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-slate-800">
-              <div
-                className={`w-8 h-8 rounded-full font-black text-xs flex items-center justify-center ring-2 ${avatarGradientClass}`}
+            <div className="flex items-center gap-1 pl-2 border-l border-slate-200 dark:border-slate-800">
+              <Link
+                href="/profile"
+                className="flex items-center gap-2 p-1 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors group cursor-pointer"
+                title="View & Edit Profile"
               >
-                {userInitials}
-              </div>
-              <div className="text-left hidden sm:block leading-tight">
-                <div className="text-xs font-bold text-slate-900 dark:text-white">{displayName}</div>
-                <div className={`text-[10px] font-medium capitalize ${roleTextClass}`}>
-                  {roleBadgeLabel}
+                <div
+                  className={`w-8 h-8 rounded-full font-black text-xs flex items-center justify-center ring-2 ${avatarGradientClass} group-hover:scale-105 transition-transform overflow-hidden`}
+                >
+                  {user?.avatar ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={user.avatar} alt={displayName} className="w-full h-full object-cover" />
+                  ) : (
+                    userInitials
+                  )}
                 </div>
-              </div>
+                <div className="text-left hidden sm:block leading-tight">
+                  <div className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 transition-colors">
+                    {displayName}
+                  </div>
+                  <div className={`text-[10px] font-medium capitalize ${roleTextClass}`}>
+                    {roleBadgeLabel}
+                  </div>
+                </div>
+              </Link>
               <button
                 type="button"
                 onClick={handleLogout}

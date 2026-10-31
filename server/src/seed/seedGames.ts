@@ -260,7 +260,7 @@ export async function seedGames() {
         { upsert: true, new: true, setDefaultsOnInsert: true }
       );
     }
-    logger.info(`✅ Successfully seeded ${OFFICIAL_GAMES.length} official FridayQuest games.`);
+    logger.info(`Successfully seeded ${OFFICIAL_GAMES.length} official FridayQuest games.`);
   } catch (err: any) {
     logger.error('Failed to seed official games:', err.message);
   }

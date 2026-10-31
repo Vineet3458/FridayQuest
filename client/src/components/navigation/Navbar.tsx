@@ -143,10 +143,15 @@ export default function Navbar() {
                   className="flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-slate-800 hover:opacity-90 transition-opacity cursor-pointer focus:outline-none"
                 >
                   <div
-                    className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-bold text-xs flex items-center justify-center shadow-xs shrink-0 select-none ring-2 ring-white dark:ring-slate-900"
+                    className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-bold text-xs flex items-center justify-center shadow-xs shrink-0 select-none ring-2 ring-white dark:ring-slate-900 overflow-hidden"
                     title={user.name}
                   >
-                    {getInitials(user.name)}
+                    {user?.avatar ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                    ) : (
+                      getInitials(user.name)
+                    )}
                   </div>
 
                   <div className="text-right hidden sm:block">

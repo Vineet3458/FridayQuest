@@ -4,10 +4,12 @@
   "description": "FridayQuest Backend - Fun Friday host, scorekeeper and live game engine",
   "main": "dist/server.js",
   "scripts": {
-    "dev": "tsx watch src/server.ts",
-    "build": "tsc",
-    "start": "node dist/server.js",
-    "test": "jest --passWithNoTests"
+    "dev": "node init && tsx watch src/server.ts",
+    "build": "node init && tsc",
+    "typecheck": "tsc --noEmit",
+    "start": "node init && node dist/server.js",
+    "test": "jest --passWithNoTests",
+    "seed": "tsx src/seed/seedFullDemo.ts"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",

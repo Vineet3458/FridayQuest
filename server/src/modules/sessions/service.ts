@@ -32,7 +32,18 @@ export class SessionsService {
   }
 
   public static async getSessions(orgId: string) {
-    return Session.find({ orgId }).sort({ date: -1, createdAt: -1 });
+    const live = await Session.find({ orgId, status: 'live' });
+    const upcoming = await Session.find({
+      orgId,
+      status: { $in: ['voting', 'planned'] },
+      _id: { $nin: live.map((s) => s._id) },
+    }).sort({ date: 1, createdAt: -1 });
+    const past = await Session.find({
+      orgId,
+      status: { $nin: ['live', 'voting', 'planned'] },
+    }).sort({ date: -1 });
+
+    return [...live, ...upcoming, ...past];
   }
 
   public static async getSessionById(sessionId: string, orgId: string) {

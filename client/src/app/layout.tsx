@@ -54,7 +54,7 @@ export default function RootLayout({
                   } else if (stored === 'dark') {
                     isDark = true;
                   } else {
-                    // Default behavior: strictly respect the user's OS system theme
+                    // Default behavior: automatically set according to the default theme of the user browser
                     isDark = systemDark;
                   }
                   if (isDark) {

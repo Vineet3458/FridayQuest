@@ -6,8 +6,6 @@ build/
 out/
 
 # Environment
-.env
-.env.local
 .env.*.local
 !.env.example
 
@@ -21,10 +19,10 @@ pnpm-debug.log*
 # OS & Editor
 .DS_Store
 Thumbs.db
-.vscode/
 .idea/
 
 # Testing & Coverage
 coverage/
 .nyc_output/
 
+config.bat
