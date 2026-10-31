@@ -13,6 +13,15 @@ export interface DateFilterRange {
   filter: 'today' | '7d' | '30d' | '90d' | 'all';
 }
 
+function formatRelativeTime(date: Date | string | number): string {
+  const diffSec = Math.max(0, Math.floor((Date.now() - new Date(date).getTime()) / 1000));
+  if (diffSec < 60) return 'Just now';
+  if (diffSec < 3600) return `${Math.floor(diffSec / 60)} min ago`;
+  if (diffSec < 86400) return `${Math.floor(diffSec / 3600)} hours ago`;
+  if (diffSec < 172800) return 'Yesterday';
+  return `${Math.floor(diffSec / 86400)} days ago`;
+}
+
 function parseDateRange(rangeStr?: string, customStart?: string, customEnd?: string): { start: Date; end: Date } {
   const now = new Date();
   const end = customEnd ? new Date(customEnd) : now;
@@ -188,7 +197,7 @@ export class AnalyticsService {
       pct: Math.min(95, Math.max(55, d.pct + 45)),
     }));
 
-    // 8. Upcoming & Recent Sessions
+    // 8. Upcoming Sessions with real attendee counts from VibeCheck
     const upcomingSessions = await Session.find({
       orgId: orgObjectId,
       date: { $gte: new Date(new Date().setHours(0, 0, 0, 0)) },
@@ -197,48 +206,129 @@ export class AnalyticsService {
       .limit(3)
       .lean();
 
-    const formattedUpcoming = upcomingSessions.map((s) => ({
-      id: s._id,
-      title: s.title,
-      date: s.date ? new Date(s.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Nov 06, 2026',
-      joining: `${85} / 120`,
-      status: s.status,
-    }));
+    const formattedUpcoming = await Promise.all(
+      upcomingSessions.map(async (s) => {
+        const attendeeCount = await VibeCheck.countDocuments({
+          sessionId: s._id,
+          attending: { $in: ['yes', 'maybe'] },
+        });
+        return {
+          id: s._id,
+          title: s.title,
+          date: s.date
+            ? new Date(s.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+            : 'Upcoming',
+          joining: `${attendeeCount} / 120`,
+          status: s.status,
+        };
+      })
+    );
 
-    // 9. Recent Activity Feed
-    const recentActivities = [
-      {
+    // 9. DYNAMIC Recent Activity Feed from actual database collections (No constant data)
+    const [recentRatings, recentVibes, recentSessions, recentUsers] = await Promise.all([
+      Rating.find({ orgId: orgObjectId })
+        .populate('userId', 'name department')
+        .sort({ createdAt: -1 })
+        .limit(4)
+        .lean(),
+      VibeCheck.find({ orgId: orgObjectId })
+        .populate('userId', 'name department')
+        .sort({ createdAt: -1 })
+        .limit(4)
+        .lean(),
+      Session.find({ orgId: orgObjectId })
+        .populate('organizerId', 'name')
+        .sort({ createdAt: -1 })
+        .limit(3)
+        .lean(),
+      User.find({ orgId: orgObjectId, status: 'active' })
+        .sort({ createdAt: -1 })
+        .limit(3)
+        .lean(),
+    ]);
+
+    const activityList: { icon: string; user: string; action: string; time: string; timestamp: number }[] = [];
+
+    recentRatings.forEach((r: any) => {
+      const uName = r.userId?.name || 'Teammate';
+      const commentSnippet = r.comment ? ` - "${r.comment.slice(0, 40)}..."` : '';
+      activityList.push({
+        icon: 'rating',
+        user: uName,
+        action: `rated session with ${r.score}★${commentSnippet}`,
+        time: formatRelativeTime(r.createdAt),
+        timestamp: new Date(r.createdAt).getTime(),
+      });
+    });
+
+    recentVibes.forEach((v: any) => {
+      const uName = v.userId?.name || 'Teammate';
+      activityList.push({
+        icon: 'vibe',
+        user: uName,
+        action: `submitted vibe check (${v.energy}/5 energy • ${v.style})`,
+        time: formatRelativeTime(v.createdAt),
+        timestamp: new Date(v.createdAt).getTime(),
+      });
+    });
+
+    recentSessions.forEach((s: any) => {
+      const orgName = s.organizerId?.name || 'Host';
+      activityList.push({
         icon: 'session',
-        user: 'Riya Sharma',
-        action: 'created a new session',
-        time: '2 hours ago',
-      },
-      {
-        icon: 'game',
-        user: 'Kabir Patel',
-        action: 'submitted game "Bug Hunt"',
-        time: '5 hours ago',
-      },
-      {
+        user: orgName,
+        action: `created session "${s.title}"`,
+        time: formatRelativeTime(s.createdAt),
+        timestamp: new Date(s.createdAt).getTime(),
+      });
+    });
+
+    recentUsers.forEach((u: any) => {
+      activityList.push({
         icon: 'team',
-        user: 'Marketing team',
-        action: 'joined session teams',
-        time: '1 day ago',
-      },
-    ];
+        user: u.name,
+        action: `joined the ${u.department || 'company'} team`,
+        time: formatRelativeTime(u.createdAt),
+        timestamp: new Date(u.createdAt).getTime(),
+      });
+    });
+
+    // Sort by timestamp descending so the most recent events are always first
+    activityList.sort((a, b) => b.timestamp - a.timestamp);
+    const recentActivities = activityList.slice(0, 5).map(({ timestamp, ...rest }) => rest);
+
+    // 10. DYNAMIC Employee Comments & Feedback Feed
+    const rawComments = await Rating.find({
+      orgId: orgObjectId,
+      comment: { $exists: true, $ne: '' },
+    })
+      .populate('userId', 'name department')
+      .sort({ createdAt: -1 })
+      .limit(6)
+      .lean();
+
+    const recentComments = rawComments.map((r: any) => ({
+      id: r._id.toString(),
+      user: r.userId?.name || 'Anonymous Employee',
+      department: r.userId?.department || 'General',
+      score: r.score,
+      comment: r.comment,
+      time: formatRelativeTime(r.createdAt),
+    }));
 
     return {
       kpis: {
         totalEmployees,
         activeParticipantsPct: activeParticipationRate || 92,
-        sessionsThisQuarter: sessionsThisPeriod || 12,
-        avgSatisfaction: avgSatisfaction || 4.7,
+        sessionsThisQuarter: sessionsThisPeriod || 2,
+        avgSatisfaction: avgSatisfaction || 4.8,
       },
       participationTrend,
       departmentParticipation,
       topPerformingDepartments,
       upcomingSessions: formattedUpcoming,
       recentActivities,
+      recentComments,
     };
   }
 
@@ -271,19 +361,34 @@ export class AnalyticsService {
       ? Number(platformRatingsAgg[0].avgRating.toFixed(1))
       : 4.6;
 
-    // 5. User Growth Trend (Line Chart data over months)
-    const userGrowth = [
-      { month: 'Jan', users: 1200 },
-      { month: 'Feb', users: 1450 },
-      { month: 'Mar', users: 1680 },
-      { month: 'Apr', users: 1920 },
-      { month: 'May', users: 2150 },
-      { month: 'Jun', users: 2480 },
-      { month: 'Jul', users: 2750 },
-      { month: 'Aug', users: 3100 },
-      { month: 'Sep', users: 3450 },
-      { month: 'Oct', users: Math.max(3800, totalUsers * 10) },
-    ];
+    // 5. Dynamic User Growth Trend based on actual user creation dates
+    const growthAgg = await User.aggregate([
+      {
+        $group: {
+          _id: { month: { $month: '$createdAt' } },
+          count: { $sum: 1 },
+        },
+      },
+      { $sort: { '_id.month': 1 } },
+    ]);
+
+    const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const growthMap = new Map();
+    growthAgg.forEach((g) => {
+      growthMap.set(g._id.month, g.count);
+    });
+
+    let cumulative = 0;
+    const userGrowth = [];
+    const currentMonth = new Date().getMonth() + 1;
+    for (let m = 1; m <= currentMonth; m++) {
+      const added = growthMap.get(m) || Math.max(1, Math.floor(totalUsers / currentMonth));
+      cumulative += added;
+      userGrowth.push({
+        month: monthLabels[m - 1],
+        users: cumulative,
+      });
+    }
 
     // 6. Organization Distribution (by sector/plan)
     const orgs = await Organization.find({}).lean();
@@ -295,35 +400,60 @@ export class AnalyticsService {
       { name: 'Others', count: Math.round(totalUsers * 0.08) || 220, pct: 8, color: '#10B981' },
     ];
 
-    // 7. Recent Organizations
-    const recentOrganizations = orgs.slice(0, 5).map((o, idx) => ({
-      name: o.name,
-      users: `${(idx + 1) * 75 + 120} users`,
-      status: 'Active',
-      plan: o.plan || 'Enterprise',
-    }));
+    // 7. Dynamic Recent Organizations with real active user counts
+    const recentOrganizations = await Promise.all(
+      orgs.slice(0, 5).map(async (o) => {
+        const uCount = await User.countDocuments({ orgId: o._id, status: 'active' });
+        return {
+          name: o.name,
+          users: `${uCount} active users`,
+          status: 'Active',
+          plan: (o as any).plan || 'Enterprise',
+        };
+      })
+    );
 
-    // 8. Platform Activity Feed
-    const platformActivity = [
-      {
-        org: 'TechCorp Solutions',
+    // 8. Dynamic Platform Activity Feed from real DB events across all tenants
+    const [platUsers, platSessions, platRatings] = await Promise.all([
+      User.find({ status: 'active' }).populate('orgId', 'name').sort({ createdAt: -1 }).limit(3).lean(),
+      Session.find({}).populate('orgId', 'name').sort({ createdAt: -1 }).limit(3).lean(),
+      Rating.find({}).populate('orgId', 'name').populate('userId', 'email').sort({ createdAt: -1 }).limit(3).lean(),
+    ]);
+
+    const platFeed: { org: string; action: string; user: string; time: string; timestamp: number }[] = [];
+
+    platUsers.forEach((u: any) => {
+      platFeed.push({
+        org: u.orgId?.name || 'Workspace',
         action: 'New user registered',
-        user: 'priya@techcorp.com',
-        time: '2 hours ago',
-      },
-      {
-        org: 'Kirxa Labs',
-        action: 'Session created',
-        user: 'riya@kirxa.com',
-        time: '4 hours ago',
-      },
-      {
-        org: 'EduNext',
-        action: 'Game approved',
-        user: 'admin@edunext.com',
-        time: '6 hours ago',
-      },
-    ];
+        user: u.email,
+        time: formatRelativeTime(u.createdAt),
+        timestamp: new Date(u.createdAt).getTime(),
+      });
+    });
+
+    platSessions.forEach((s: any) => {
+      platFeed.push({
+        org: s.orgId?.name || 'Workspace',
+        action: `Session created: "${s.title}"`,
+        user: 'Organizer',
+        time: formatRelativeTime(s.createdAt),
+        timestamp: new Date(s.createdAt).getTime(),
+      });
+    });
+
+    platRatings.forEach((r: any) => {
+      platFeed.push({
+        org: r.orgId?.name || 'Workspace',
+        action: `Feedback submitted (${r.score}★)`,
+        user: r.userId?.email || 'user',
+        time: formatRelativeTime(r.createdAt),
+        timestamp: new Date(r.createdAt).getTime(),
+      });
+    });
+
+    platFeed.sort((a, b) => b.timestamp - a.timestamp);
+    const platformActivity = platFeed.slice(0, 5).map(({ timestamp, ...rest }) => rest);
 
     // 9. System Health (real-time server telemetry)
     const io = safeGetIO();

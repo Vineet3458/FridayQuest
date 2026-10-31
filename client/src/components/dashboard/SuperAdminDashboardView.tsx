@@ -49,58 +49,17 @@ export default function SuperAdminDashboardView({
   const totalSessions = kpis.totalSessions ?? 186;
   const platformRating = kpis.platformRating ?? 4.6;
 
-  // Real user growth array from MongoDB / service
-  const userGrowth = data?.userGrowth && data.userGrowth.length > 0
-    ? data.userGrowth
-    : [
-        { month: 'Jan', users: 1200 },
-        { month: 'Feb', users: 1450 },
-        { month: 'Mar', users: 1680 },
-        { month: 'Apr', users: 1920 },
-        { month: 'May', users: 2150 },
-        { month: 'Jun', users: 2480 },
-        { month: 'Jul', users: 2750 },
-        { month: 'Aug', users: 3100 },
-        { month: 'Sep', users: 3450 },
-        { month: 'Oct', users: 3800 },
-      ];
+  // Real dynamic user growth array from MongoDB
+  const userGrowth = data?.userGrowth || [];
 
   // Real organization industry distribution
-  const orgDist = data?.organizationDistribution && data.organizationDistribution.length > 0
-    ? data.organizationDistribution
-    : [
-        { name: 'Tech', count: 13, pct: 40, color: '#38BDF8' },
-        { name: 'Education', count: 8, pct: 25, color: '#2563EB' },
-        { name: 'Healthcare', count: 5, pct: 15, color: '#EC4899' },
-        { name: 'Finance', count: 4, pct: 12, color: '#F59E0B' },
-        { name: 'Others', count: 3, pct: 8, color: '#10B981' },
-      ];
+  const orgDist = data?.organizationDistribution || [];
 
-  const recentOrgs = data?.recentOrganizations && data.recentOrganizations.length > 0
-    ? data.recentOrganizations.slice(0, 4)
-    : [
-        { name: 'Kirxa Labs', users: '248 users', status: 'Active' },
-        { name: 'TechCorp Solutions', users: '180 users', status: 'Active' },
-        { name: 'EduNext', users: '120 users', status: 'Active' },
-        { name: 'HealthPlus', users: '95 users', status: 'Active' },
-      ];
+  const recentOrgs = data?.recentOrganizations || [];
 
-  const platformActivities = data?.platformActivity && data.platformActivity.length > 0
-    ? data.platformActivity
-    : [
-        { org: 'TechCorp Solutions', action: 'New user registered', user: 'priya@techcorp.com', time: '2 hours ago' },
-        { org: 'Kirxa Labs', action: 'Session created', user: 'admin@kirxa.com', time: '4 hours ago' },
-        { org: 'EduNext', action: 'Game approved', user: 'admin@edunest.com', time: '6 hours ago' },
-      ];
+  const platformActivities = data?.platformActivity || [];
 
-  const health = data?.systemHealth && data.systemHealth.length > 0
-    ? data.systemHealth
-    : [
-        { name: 'API Server', status: 'Healthy' },
-        { name: 'Database', status: 'Healthy' },
-        { name: 'Socket Server', status: 'Healthy' },
-        { name: 'Storage', status: 'Healthy' },
-      ];
+  const health = data?.systemHealth || [];
 
   return (
     <div className="p-4 sm:p-6 lg:p-7 space-y-6 max-w-7xl mx-auto w-full">
@@ -361,17 +320,23 @@ export default function SuperAdminDashboardView({
           </div>
 
           <div className="space-y-2.5">
-            {recentOrgs.map((org, idx) => (
-              <div key={idx} className="p-2.5 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-between">
-                <div className="min-w-0 pr-2">
-                  <div className="font-extrabold text-xs text-white truncate">{org.name}</div>
-                  <div className="text-[10px] text-slate-400 mt-0.5">{org.users}</div>
-                </div>
-                <span className="text-[10px] font-bold text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded-md border border-emerald-800/60 shrink-0">
-                  {org.status}
-                </span>
+            {recentOrgs.length === 0 ? (
+              <div className="py-6 text-center text-xs text-slate-500">
+                No active workspaces found.
               </div>
-            ))}
+            ) : (
+              recentOrgs.map((org, idx) => (
+                <div key={idx} className="p-2.5 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-between">
+                  <div className="min-w-0 pr-2">
+                    <div className="font-extrabold text-xs text-white truncate">{org.name}</div>
+                    <div className="text-[10px] text-slate-400 mt-0.5">{org.users}</div>
+                  </div>
+                  <span className="text-[10px] font-bold text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded-md border border-emerald-800/60 shrink-0">
+                    {org.status}
+                  </span>
+                </div>
+              ))
+            )}
           </div>
 
           <div className="text-[10px] text-slate-500 text-center font-medium">
@@ -402,14 +367,22 @@ export default function SuperAdminDashboardView({
                 </tr>
               </thead>
               <tbody className="divide-y border-slate-800/60">
-                {platformActivities.map((row, idx) => (
-                  <tr key={idx} className="hover:bg-slate-900/60 transition-colors">
-                    <td className="py-2.5 font-bold text-white text-xs">{row.org}</td>
-                    <td className="py-2.5 text-slate-300 text-xs">{row.action}</td>
-                    <td className="py-2.5 font-mono text-[11px] text-slate-400">{row.user}</td>
-                    <td className="py-2.5 text-slate-500 text-right text-xs">{row.time}</td>
+                {platformActivities.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="py-6 text-center text-slate-500 text-xs">
+                      No platform events recorded yet.
+                    </td>
                   </tr>
-                ))}
+                ) : (
+                  platformActivities.map((row, idx) => (
+                    <tr key={idx} className="hover:bg-slate-900/60 transition-colors">
+                      <td className="py-2.5 font-bold text-white text-xs">{row.org}</td>
+                      <td className="py-2.5 text-slate-300 text-xs">{row.action}</td>
+                      <td className="py-2.5 font-mono text-[11px] text-slate-400">{row.user}</td>
+                      <td className="py-2.5 text-slate-500 text-right text-xs">{row.time}</td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

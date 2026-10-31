@@ -161,6 +161,7 @@ export default function DashboardPage() {
           <OrganizerDashboardView
             user={user}
             nextSession={nextSession}
+            sessions={sessions}
           />
         );
       case 'orgAdmin':
@@ -181,7 +182,7 @@ export default function DashboardPage() {
   })();
 
   return (
-    <main className="flex min-h-[100dvh] w-full flex-1 flex-col">
+    <div className="flex w-full flex-1 flex-col">
       {realtimeNotice && (
         <div role="status" className="fixed top-4 right-4 z-50 flex items-center gap-2 rounded-2xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white shadow-lg animate-in fade-in slide-in-from-top-2">
           <Zap className="h-4 w-4" />
@@ -214,6 +215,6 @@ export default function DashboardPage() {
           Your account role is not recognized. Contact your organization administrator.
         </div>
       )}
-    </main>
+    </div>
   );
 }

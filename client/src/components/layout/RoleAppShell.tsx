@@ -437,21 +437,26 @@ export default function RoleAppShell({ children }: RoleAppShellProps) {
 
       case 'player':
       default: {
-        const activeClass = 'bg-[#2563EB] text-white shadow-xs font-bold';
+        const activeClass = 'bg-gradient-to-r from-[#6366F1] to-[#7C3AED] text-white shadow-md shadow-purple-500/20 font-bold';
         const inactiveClass =
-          'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60 font-semibold';
+          'text-slate-600 dark:text-slate-400 hover:text-purple-700 dark:hover:text-white hover:bg-purple-50/60 dark:hover:bg-slate-800/60 font-semibold';
 
         return (
           <>
-            {/* Player / Employee Clean White Sidebar */}
-            <div className="space-y-5">
+            {/* Player / Employee Clean White Sidebar matching exact design */}
+            <div className="space-y-4">
               <div className="flex items-center gap-2.5 px-1 pt-1">
-                <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-blue-500 flex items-center justify-center font-black text-white text-xs tracking-wider shadow-md shadow-blue-500/25">
-                  FQ
+                <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-[#6366F1] via-[#8B5CF6] to-[#7C3AED] flex items-center justify-center text-white shadow-md shadow-purple-500/25 shrink-0">
+                  <Gamepad2 className="w-5 h-5 fill-current" />
                 </div>
-                <span className="font-extrabold text-base tracking-tight text-slate-900 dark:text-white">
-                  FridayQuest
-                </span>
+                <div>
+                  <span className="font-black text-base tracking-tight text-slate-900 dark:text-white leading-none block">
+                    FridayQuest
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-medium tracking-tight">
+                    Play. Connect. Grow.
+                  </span>
+                </div>
               </div>
 
               <nav className="space-y-1 text-xs">
@@ -462,7 +467,7 @@ export default function RoleAppShell({ children }: RoleAppShellProps) {
                     isLinkActive('/dashboard') ? activeClass : inactiveClass
                   }`}
                 >
-                  <LayoutDashboard className={`w-4 h-4 ${isLinkActive('/dashboard') ? 'text-white' : 'text-blue-600'}`} />
+                  <LayoutDashboard className={`w-4 h-4 ${isLinkActive('/dashboard') ? 'text-white' : 'text-purple-600'}`} />
                   <span>Dashboard</span>
                 </Link>
 
@@ -473,7 +478,7 @@ export default function RoleAppShell({ children }: RoleAppShellProps) {
                     isLinkActive('/sessions') ? activeClass : inactiveClass
                   }`}
                 >
-                  <Calendar className={`w-4 h-4 ${isLinkActive('/sessions') ? 'text-white' : 'text-indigo-600'}`} />
+                  <Calendar className={`w-4 h-4 ${isLinkActive('/sessions') ? 'text-white' : 'text-purple-500'}`} />
                   <span>My Sessions</span>
                 </Link>
 
@@ -484,7 +489,7 @@ export default function RoleAppShell({ children }: RoleAppShellProps) {
                     isLinkActive('/games') ? activeClass : inactiveClass
                   }`}
                 >
-                  <Gamepad2 className={`w-4 h-4 ${isLinkActive('/games') ? 'text-white' : 'text-purple-600'}`} />
+                  <Gamepad2 className={`w-4 h-4 ${isLinkActive('/games') ? 'text-white' : 'text-purple-500'}`} />
                   <span>Game Library</span>
                 </Link>
 
@@ -495,7 +500,7 @@ export default function RoleAppShell({ children }: RoleAppShellProps) {
                     isLinkActive('/teams') ? activeClass : inactiveClass
                   }`}
                 >
-                  <Users className={`w-4 h-4 ${isLinkActive('/teams') ? 'text-white' : 'text-amber-600'}`} />
+                  <Users className={`w-4 h-4 ${isLinkActive('/teams') ? 'text-white' : 'text-amber-500'}`} />
                   <span>My Team</span>
                 </Link>
 
@@ -506,7 +511,7 @@ export default function RoleAppShell({ children }: RoleAppShellProps) {
                     isLinkActive('/analytics') ? activeClass : inactiveClass
                   }`}
                 >
-                  <TrendingUp className={`w-4 h-4 ${isLinkActive('/analytics') ? 'text-white' : 'text-emerald-600'}`} />
+                  <TrendingUp className={`w-4 h-4 ${isLinkActive('/analytics') ? 'text-white' : 'text-emerald-500'}`} />
                   <span>My Progress</span>
                 </Link>
 
@@ -519,6 +524,20 @@ export default function RoleAppShell({ children }: RoleAppShellProps) {
                   <span>Achievements</span>
                 </Link>
               </nav>
+
+              {/* Astronaut Mascot Card matching exact reference */}
+              <div className="pt-2 px-3 py-2.5 rounded-2xl bg-gradient-to-b from-blue-50/60 via-purple-50/50 to-pink-50/40 dark:from-slate-900 dark:to-indigo-950/40 border border-purple-100/60 dark:border-slate-800 text-center flex flex-col items-center select-none">
+                <img
+                  src="/images/player/astronaut-only.png"
+                  alt="FridayQuest Mascot"
+                  className="w-16 h-auto drop-shadow-xs"
+                />
+                <div className="mt-1 text-[10px] font-extrabold text-slate-700 dark:text-slate-300 leading-tight">
+                  <div>Good Games</div>
+                  <div>Better People</div>
+                  <div className="text-purple-600 dark:text-purple-400">Happier Fridays! ✨</div>
+                </div>
+              </div>
             </div>
 
             <div className="pt-3 border-t border-slate-200/80 dark:border-slate-800/80 space-y-1 text-xs">
@@ -541,7 +560,7 @@ export default function RoleAppShell({ children }: RoleAppShellProps) {
               <button
                 type="button"
                 onClick={handleLogout}
-                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl font-medium text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer text-left"
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl font-semibold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer text-left"
               >
                 <LogOut className="w-4 h-4" />
                 <span>Sign Out</span>
@@ -667,19 +686,19 @@ export default function RoleAppShell({ children }: RoleAppShellProps) {
   })();
 
   return (
-    <div className={`min-h-[100dvh] w-full flex flex-col md:flex-row transition-colors ${shellBgClass}`}>
-      {/* 1. Desktop Persistent Left Sidebar (NEVER REMOVED ON ANY PAGE OR COMPONENT) */}
+    <div className={`h-screen w-full flex flex-col md:flex-row overflow-hidden transition-colors ${shellBgClass}`}>
+      {/* 1. Desktop Persistent Left Sidebar (FIXED & PINNED: never scrolls away) */}
       <aside
-        className={`w-60 shrink-0 border-r p-4 hidden md:flex flex-col justify-between shadow-xs sticky top-0 h-[100dvh] z-30 ${sidebarBgClass}`}
+        className={`w-60 shrink-0 border-r p-4 hidden md:flex flex-col justify-between shadow-xs h-screen overflow-y-auto z-30 select-none ${sidebarBgClass}`}
       >
         {renderSidebarContent()}
       </aside>
 
       {/* 2. Main Area with Top Header and Page Component */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Top Header */}
+      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+        {/* Top Header (FIXED & PINNED: never scrolls away) */}
         <header
-          className={`px-4 sm:px-6 py-3 border-b flex items-center justify-between gap-3 backdrop-blur sticky top-0 z-20 transition-colors ${headerBgClass}`}
+          className={`shrink-0 px-4 sm:px-6 py-3 border-b flex items-center justify-between gap-3 z-20 transition-colors ${headerBgClass}`}
         >
           {/* Mobile hamburger menu toggle */}
           <div className="flex items-center gap-2 md:hidden">
@@ -696,14 +715,15 @@ export default function RoleAppShell({ children }: RoleAppShellProps) {
             </div>
           </div>
 
-          {/* Search Pill */}
+          {/* Search Pill with ⌘ K shortcut */}
           <div className="relative flex-1 max-w-md">
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
               placeholder={searchPlaceholder}
-              className={`w-full rounded-full pl-9 pr-4 py-2 text-xs focus:outline-none focus:ring-2 transition-all ${searchInputClass}`}
+              className={`w-full rounded-full pl-9 pr-14 py-2 text-xs focus:outline-none focus:ring-2 transition-all ${searchInputClass}`}
             />
+            <kbd className="absolute right-3.5 top-1/2 -translate-y-1/2 px-1.5 py-0.5 text-[10px] font-bold text-slate-400 bg-slate-100 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700 select-none">⌘ K</kbd>
           </div>
 
           {/* Right Header Utilities */}
@@ -714,7 +734,9 @@ export default function RoleAppShell({ children }: RoleAppShellProps) {
               title="Notifications"
             >
               <Bell className="w-4 h-4" />
-              <span className="w-2 h-2 rounded-full bg-rose-500 absolute top-1.5 right-1.5 ring-2 ring-white dark:ring-slate-900"></span>
+              <span className="w-4 h-4 rounded-full bg-rose-500 text-white text-[9px] font-black absolute -top-0.5 -right-0.5 flex items-center justify-center ring-2 ring-white dark:ring-slate-900 shadow-xs">
+                3
+              </span>
             </button>
 
             <ThemeToggle />
@@ -722,7 +744,7 @@ export default function RoleAppShell({ children }: RoleAppShellProps) {
             {/* TV View shortcut */}
             <Link
               href="/sessions"
-              className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-semibold hover:bg-blue-100 transition-colors"
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50/80 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-800/40 text-xs font-bold hover:bg-blue-100 transition-colors shadow-2xs"
             >
               <Tv className="w-3.5 h-3.5" />
               <span>TV View</span>
@@ -755,13 +777,13 @@ export default function RoleAppShell({ children }: RoleAppShellProps) {
 
         {/* Mobile Navigation Drawer */}
         {mobileMenuOpen && (
-          <div className={`md:hidden border-b p-4 space-y-3 animate-in slide-in-from-top duration-200 ${sidebarBgClass}`}>
+          <div className={`md:hidden shrink-0 border-b p-4 space-y-3 animate-in slide-in-from-top duration-200 ${sidebarBgClass}`}>
             {renderSidebarContent()}
           </div>
         )}
 
-        {/* Page Content View */}
-        <main className="flex-1 flex flex-col min-w-0">
+        {/* Dedicated Scrollable Content View: ONLY THIS CONTAINER SCROLLS */}
+        <main className="flex-1 overflow-y-auto min-w-0 flex flex-col relative focus:outline-none">
           {children}
         </main>
       </div>

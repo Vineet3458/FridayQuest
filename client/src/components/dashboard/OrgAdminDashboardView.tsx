@@ -52,61 +52,18 @@ export default function OrgAdminDashboardView({
   const avgSatisfaction = kpis.avgSatisfaction ?? 4.8;
 
   // Real participation trend from MongoDB
-  const trendData = data?.participationTrend && data.participationTrend.length > 0
-    ? data.participationTrend.map((d) => ({
-        m: d.month,
-        participants: d.participants,
-        sessions: d.sessions,
-      }))
-    : [
-        { m: 'Jan', participants: 1200, sessions: 2 },
-        { m: 'Feb', participants: 1450, sessions: 3 },
-        { m: 'Mar', participants: 1680, sessions: 3 },
-        { m: 'Apr', participants: 1920, sessions: 4 },
-        { m: 'May', participants: 2150, sessions: 4 },
-        { m: 'Jun', participants: 2480, sessions: 5 },
-        { m: 'Jul', participants: 2200, sessions: 4 },
-        { m: 'Aug', participants: 2500, sessions: 5 },
-        { m: 'Sep', participants: 2650, sessions: 6 },
-        { m: 'Oct', participants: 2850, sessions: 6 },
-      ];
+  const trendData = data?.participationTrend || [];
 
   // Real department distribution from MongoDB
-  const deptData = data?.departmentParticipation && data.departmentParticipation.length > 0
-    ? data.departmentParticipation
-    : [
-        { name: 'Engineering', count: 12, pct: 35, color: '#2563EB' },
-        { name: 'Marketing', count: 7, pct: 20, color: '#8B5CF6' },
-        { name: 'Product', count: 6, pct: 18, color: '#F59E0B' },
-        { name: 'HR', count: 5, pct: 15, color: '#10B981' },
-        { name: 'Finance', count: 4, pct: 12, color: '#EC4899' },
-      ];
+  const deptData = data?.departmentParticipation || [];
 
-  const upcomingSessions = data?.upcomingSessions && data.upcomingSessions.length > 0
-    ? data.upcomingSessions
-    : [
-        { id: '1', title: 'Fun Friday Kickoff', date: 'Oct 30, 2026', joining: '85 / 120', status: 'voting' },
-        { id: '2', title: 'Diwali Special', date: 'Nov 06, 2026', joining: '0 / 100', status: 'planned' },
-        { id: '3', title: 'Team Innovation', date: 'Nov 20, 2026', joining: '0 / 100', status: 'planned' },
-      ];
+  const upcomingSessions = data?.upcomingSessions || [];
 
-  const recentActivities = data?.recentActivities && data.recentActivities.length > 0
-    ? data.recentActivities
-    : [
-        { icon: 'session', user: 'Riya Sharma', action: 'created a new session', time: '2 hours ago' },
-        { icon: 'game', user: 'Kabir Patel', action: 'submitted game "Bug Hunt"', time: '5 hours ago' },
-        { icon: 'team', user: 'Marketing team', action: 'joined session teams', time: '1 day ago' },
-      ];
+  const recentActivities = data?.recentActivities || [];
 
-  const topDepartments = data?.topPerformingDepartments && data.topPerformingDepartments.length > 0
-    ? data.topPerformingDepartments.slice(0, 5)
-    : [
-        { name: 'Engineering', pct: 92 },
-        { name: 'Product', pct: 88 },
-        { name: 'Marketing', pct: 76 },
-        { name: 'HR', pct: 68 },
-        { name: 'Finance', pct: 62 },
-      ];
+  const recentComments = data?.recentComments || [];
+
+  const topDepartments = data?.topPerformingDepartments?.slice(0, 5) || [];
 
   return (
     <div className="p-4 sm:p-6 lg:p-7 space-y-6 max-w-7xl mx-auto w-full">
@@ -396,40 +353,55 @@ export default function OrgAdminDashboardView({
 
       {/* BOTTOM ROW: RECENT ACTIVITY & TOP PERFORMING DEPARTMENTS */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        {/* Recent Activity (lg:col-span-5) */}
-        <div className="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs space-y-3">
-          <h4 className="text-xs font-black uppercase text-slate-900 dark:text-white tracking-wider">
-            Recent Activity
-          </h4>
+        {/* Recent Activity (lg:col-span-6) */}
+        <div className="lg:col-span-6 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs space-y-3">
+          <div className="flex items-center justify-between">
+            <h4 className="text-xs font-black uppercase text-slate-900 dark:text-white tracking-wider">
+              Recent Activity
+            </h4>
+            <span className="text-[10px] font-bold text-slate-400">Live feed</span>
+          </div>
 
           <div className="space-y-2.5">
-            {recentActivities.map((act, idx) => {
-              const iconEmoji = act.icon === 'game' ? '🎮' : act.icon === 'team' ? '👥' : '🎉';
-              const bg = act.icon === 'game'
-                ? 'bg-blue-100 text-blue-600 dark:bg-blue-950/60 dark:text-blue-300'
-                : act.icon === 'team'
-                ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-300'
-                : 'bg-purple-100 text-purple-600 dark:bg-purple-950/60 dark:text-purple-300';
+            {recentActivities.length === 0 ? (
+              <div className="py-6 text-center text-xs text-slate-400">
+                No recent activity recorded for this time range.
+              </div>
+            ) : (
+              recentActivities.map((act, idx) => {
+                const iconEmoji =
+                  act.icon === 'game' ? '🎮' : act.icon === 'team' ? '👥' : act.icon === 'vibe' ? '⚡' : act.icon === 'rating' ? '⭐' : '🎉';
+                const bg =
+                  act.icon === 'game'
+                    ? 'bg-blue-100 text-blue-600 dark:bg-blue-950/60 dark:text-blue-300'
+                    : act.icon === 'team'
+                    ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-300'
+                    : act.icon === 'vibe'
+                    ? 'bg-amber-100 text-amber-600 dark:bg-amber-950/60 dark:text-amber-300'
+                    : act.icon === 'rating'
+                    ? 'bg-yellow-100 text-yellow-600 dark:bg-yellow-950/60 dark:text-yellow-300'
+                    : 'bg-purple-100 text-purple-600 dark:bg-purple-950/60 dark:text-purple-300';
 
-              return (
-                <div key={idx} className="flex items-center gap-3 p-2 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm shrink-0 ${bg}`}>
-                    {iconEmoji}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-bold text-xs text-slate-900 dark:text-white truncate">
-                      {act.user} {act.action}
+                return (
+                  <div key={idx} className="flex items-center gap-3 p-2 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm shrink-0 ${bg}`}>
+                      {iconEmoji}
                     </div>
-                    <div className="text-[10px] text-slate-400">{act.time}</div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-bold text-xs text-slate-900 dark:text-white truncate">
+                        {act.user} <span className="font-normal text-slate-600 dark:text-slate-300">{act.action}</span>
+                      </div>
+                      <div className="text-[10px] text-slate-400">{act.time}</div>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
         </div>
 
-        {/* Top Performing Departments (lg:col-span-7) */}
-        <div className="lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs space-y-3">
+        {/* Top Performing Departments (lg:col-span-6) */}
+        <div className="lg:col-span-6 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs space-y-3">
           <div className="flex items-center justify-between">
             <h4 className="text-xs font-black uppercase text-slate-900 dark:text-white tracking-wider">
               Top Performing Departments
@@ -440,33 +412,87 @@ export default function OrgAdminDashboardView({
           </div>
 
           <div className="space-y-2.5 pt-1">
-            {topDepartments.map((dept, idx) => {
-              const gradients = [
-                'from-blue-600 to-indigo-600',
-                'from-blue-600 to-sky-500',
-                'from-purple-600 to-indigo-500',
-                'from-amber-500 to-orange-500',
-                'from-emerald-500 to-teal-500',
-              ];
-              const color = gradients[idx % gradients.length];
-              return (
-                <div key={idx} className="space-y-1">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-bold text-slate-800 dark:text-slate-200">{dept.name}</span>
-                    <span className="font-black text-slate-900 dark:text-white">{dept.pct}%</span>
+            {topDepartments.length === 0 ? (
+              <div className="py-6 text-center text-xs text-slate-400">
+                Department participation metrics will populate after sessions.
+              </div>
+            ) : (
+              topDepartments.map((dept, idx) => {
+                const gradients = [
+                  'from-blue-600 to-indigo-600',
+                  'from-blue-600 to-sky-500',
+                  'from-purple-600 to-indigo-500',
+                  'from-amber-500 to-orange-500',
+                  'from-emerald-500 to-teal-500',
+                ];
+                const color = gradients[idx % gradients.length];
+                return (
+                  <div key={idx} className="space-y-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-bold text-slate-800 dark:text-slate-200">{dept.name}</span>
+                      <span className="font-black text-slate-900 dark:text-white">{dept.pct}%</span>
+                    </div>
+                    <div className="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+                      <div
+                        style={{ width: `${Math.min(dept.pct, 100)}%` }}
+                        className={`h-full rounded-full bg-gradient-to-r ${color} transition-all duration-500`}
+                      ></div>
+                    </div>
                   </div>
-                  <div className="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
-                    <div
-                      style={{ width: `${Math.min(dept.pct, 100)}%` }}
-                      className={`h-full rounded-full bg-gradient-to-r ${color} transition-all duration-500`}
-                    ></div>
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
         </div>
       </div>
+
+      {/* DYNAMIC EMPLOYEE FEEDBACK & COMMENTS ROW */}
+      {recentComments.length > 0 && (
+        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h4 className="text-xs font-black uppercase text-slate-900 dark:text-white tracking-wider">
+                Recent Employee Feedback & Comments
+              </h4>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                Live feedback submitted by team members after sessions
+              </p>
+            </div>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60">
+              MongoDB Live
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {recentComments.map((rc) => (
+              <div
+                key={rc.id}
+                className="p-3.5 rounded-2xl bg-slate-50/70 dark:bg-slate-950 border border-slate-100 dark:border-slate-800/80 space-y-2 flex flex-col justify-between"
+              >
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="font-extrabold text-xs text-slate-900 dark:text-white">
+                      {rc.user}
+                    </span>
+                    <span className="text-[10px] font-bold text-amber-500 flex items-center gap-0.5">
+                      {'★'.repeat(rc.score)}
+                    </span>
+                  </div>
+                  <div className="text-[10px] text-slate-400">
+                    {rc.department}
+                  </div>
+                  <p className="text-xs text-slate-700 dark:text-slate-300 italic pt-1">
+                    &ldquo;{rc.comment}&rdquo;
+                  </p>
+                </div>
+                <div className="text-[10px] text-slate-400 pt-2 border-t border-slate-200/50 dark:border-slate-800 text-right">
+                  {rc.time}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

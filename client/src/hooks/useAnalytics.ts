@@ -42,6 +42,15 @@ export interface SystemHealthItem {
   usage?: string;
 }
 
+export interface EmployeeCommentItem {
+  id: string;
+  user: string;
+  department: string;
+  score: number;
+  comment: string;
+  time: string;
+}
+
 export interface AnalyticsData {
   kpis: AnalyticsKPIs;
   participationTrend?: ParticipationTrendItem[];
@@ -60,6 +69,7 @@ export interface AnalyticsData {
     action: string;
     time: string;
   }[];
+  recentComments?: EmployeeCommentItem[];
   userGrowth?: { month: string; users: number }[];
   organizationDistribution?: { name: string; count: number; pct: number; color: string }[];
   recentOrganizations?: { name: string; users: string; status: string; plan: string }[];

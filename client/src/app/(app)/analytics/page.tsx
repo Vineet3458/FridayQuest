@@ -58,40 +58,11 @@ export default function AnalyticsPage() {
     ? 'bg-[#FFFDF9] border-amber-200/80 text-slate-900 dark:bg-slate-900 dark:border-slate-800 dark:text-white'
     : 'bg-white border-slate-200/80 text-slate-900 dark:bg-slate-900 dark:border-slate-800 dark:text-white';
 
-  const trendData = data?.participationTrend && data.participationTrend.length > 0
-    ? data.participationTrend
-    : [
-        { month: 'Jan', participants: 1200, sessions: 2 },
-        { month: 'Feb', participants: 1450, sessions: 3 },
-        { month: 'Mar', participants: 1680, sessions: 3 },
-        { month: 'Apr', participants: 1920, sessions: 4 },
-        { month: 'May', participants: 2150, sessions: 4 },
-        { month: 'Jun', participants: 2480, sessions: 5 },
-        { month: 'Jul', participants: 2200, sessions: 4 },
-        { month: 'Aug', participants: 2500, sessions: 5 },
-        { month: 'Sep', participants: 2650, sessions: 6 },
-        { month: 'Oct', participants: 2850, sessions: 6 },
-      ];
-
-  const deptData = data?.departmentParticipation && data.departmentParticipation.length > 0
-    ? data.departmentParticipation
-    : [
-        { name: 'Engineering', count: 12, pct: 35, color: '#2563EB' },
-        { name: 'Marketing', count: 7, pct: 20, color: '#8B5CF6' },
-        { name: 'Product', count: 6, pct: 18, color: '#F59E0B' },
-        { name: 'HR', count: 5, pct: 15, color: '#10B981' },
-        { name: 'Finance', count: 4, pct: 12, color: '#EC4899' },
-      ];
-
-  const topDepts = data?.topPerformingDepartments && data.topPerformingDepartments.length > 0
-    ? data.topPerformingDepartments
-    : [
-        { name: 'Engineering', pct: 92 },
-        { name: 'Product', pct: 88 },
-        { name: 'Marketing', pct: 76 },
-        { name: 'HR', pct: 68 },
-        { name: 'Finance', pct: 62 },
-      ];
+  const trendData = data?.participationTrend || [];
+  const deptData = data?.departmentParticipation || [];
+  const topDepts = data?.topPerformingDepartments || [];
+  const recentActivities = data?.recentActivities || [];
+  const recentComments = data?.recentComments || [];
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full">
@@ -408,26 +379,73 @@ export default function AnalyticsPage() {
           </div>
 
           <div className="space-y-2.5 pt-1">
-            {(data?.recentActivities || [
-              { icon: 'session', user: 'Riya Sharma', action: 'created a new session', time: '2 hours ago' },
-              { icon: 'game', user: 'Kabir Patel', action: 'submitted game "Bug Hunt"', time: '5 hours ago' },
-              { icon: 'team', user: 'Marketing team', action: 'joined session teams', time: '1 day ago' },
-            ]).map((act, idx) => (
-              <div key={idx} className="flex items-center gap-3 p-2.5 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
-                <div className="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center text-sm shrink-0">
-                  {act.icon === 'game' ? '🎮' : act.icon === 'team' ? '👥' : '🎉'}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-bold text-xs truncate">
-                    {act.user} {act.action}
+            {recentActivities.length === 0 ? (
+              <div className="py-6 text-center text-xs text-slate-400">
+                No recent activity recorded for this time range.
+              </div>
+            ) : (
+              recentActivities.map((act, idx) => (
+                <div key={idx} className="flex items-center gap-3 p-2.5 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
+                  <div className="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center text-sm shrink-0">
+                    {act.icon === 'game' ? '🎮' : act.icon === 'team' ? '👥' : act.icon === 'vibe' ? '⚡' : act.icon === 'rating' ? '⭐' : '🎉'}
                   </div>
-                  <div className="text-[10px] text-slate-400">{act.time}</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-bold text-xs truncate">
+                      {act.user} <span className="font-normal opacity-80">{act.action}</span>
+                    </div>
+                    <div className="text-[10px] text-slate-400">{act.time}</div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* DYNAMIC COMMENTS & RATINGS SECTION */}
+      {recentComments.length > 0 && (
+        <div className={`p-5 rounded-3xl border shadow-xs space-y-4 ${themeCardBg}`}>
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-black uppercase tracking-wider flex items-center gap-2">
+                <Star className="w-4 h-4 text-amber-500 fill-current" />
+                <span>Recent Employee Comments & Feedback</span>
+              </h3>
+              <p className="text-[11px] text-slate-400">
+                Actual verified post-session feedback from teammates
+              </p>
+            </div>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-500 border border-blue-500/20">
+              Real MongoDB Feedback
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pt-1">
+            {recentComments.map((rc) => (
+              <div
+                key={rc.id}
+                className="p-3.5 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 flex flex-col justify-between space-y-2"
+              >
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-xs">{rc.user}</span>
+                    <span className="text-[10px] text-amber-500 font-bold">
+                      {'★'.repeat(rc.score)}
+                    </span>
+                  </div>
+                  <div className="text-[10px] text-slate-400">{rc.department}</div>
+                  <p className="text-xs text-slate-600 dark:text-slate-300 italic pt-1">
+                    &ldquo;{rc.comment}&rdquo;
+                  </p>
+                </div>
+                <div className="text-[10px] text-slate-400 pt-1 border-t border-slate-100 dark:border-slate-800 text-right">
+                  {rc.time}
                 </div>
               </div>
             ))}
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

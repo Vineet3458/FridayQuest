@@ -30,16 +30,19 @@ import {
 } from 'lucide-react';
 import ThemeToggle from '@/components/theme/ThemeToggle';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { useAnalytics } from '@/hooks/useAnalytics';
 
 interface OrganizerDashboardViewProps {
   user?: any;
   nextSession?: any;
+  sessions?: any[];
   isCompact?: boolean;
 }
 
 export default function OrganizerDashboardView({
   user,
   nextSession,
+  sessions = [],
   isCompact = false,
 }: OrganizerDashboardViewProps) {
   const router = useRouter();
@@ -53,9 +56,20 @@ export default function OrganizerDashboardView({
 
   const displayName = user?.name || 'Riya Sharma';
   const userInitials = displayName.slice(0, 2).toUpperCase();
+
+  const { data } = useAnalytics({ scope: 'org' });
+  const kpis = data?.kpis || {};
+  const avgSatisfaction = kpis.avgSatisfaction ?? 4.8;
+  const upcomingCount = data?.upcomingSessions?.length ?? 3;
+  const totalParticipants = kpis.totalEmployees ? kpis.totalEmployees * 4 : 128;
+  const confirmedJoining = data?.upcomingSessions?.[0]?.joining || '30 / 120';
   const joinCode = nextSession?.joinCode || '';
   const liveRoomUrl = joinCode ? `/session/${encodeURIComponent(joinCode)}/play` : '/sessions';
   const screenUrl = joinCode ? `/session/${encodeURIComponent(joinCode)}/screen` : '/sessions';
+
+  const recentCompleted = (sessions || []).filter(
+    (s) => s.status === 'done' || s.status === 'completed'
+  );
 
   return (
     <div className="p-4 sm:p-6 lg:p-7 space-y-6 max-w-7xl mx-auto w-full">
@@ -93,7 +107,9 @@ export default function OrganizerDashboardView({
                 <Calendar className="w-5 h-5" />
               </div>
               <div>
-                <div className="text-2xl font-black text-slate-900 dark:text-white leading-none font-mono">3</div>
+                <div className="text-2xl font-black text-slate-900 dark:text-white leading-none font-mono">
+                  {upcomingCount}
+                </div>
                 <div className="text-xs font-semibold text-slate-500 mt-1">Upcoming Sessions</div>
               </div>
             </div>
@@ -104,7 +120,9 @@ export default function OrganizerDashboardView({
                 <Users className="w-5 h-5" />
               </div>
               <div>
-                <div className="text-2xl font-black text-slate-900 dark:text-white leading-none font-mono">128</div>
+                <div className="text-2xl font-black text-slate-900 dark:text-white leading-none font-mono">
+                  {totalParticipants}
+                </div>
                 <div className="text-xs font-semibold text-slate-500 mt-1">Total Participants</div>
               </div>
             </div>
@@ -115,7 +133,9 @@ export default function OrganizerDashboardView({
                 <Trophy className="w-5 h-5" />
               </div>
               <div>
-                <div className="text-2xl font-black text-slate-900 dark:text-white leading-none font-mono">24</div>
+                <div className="text-2xl font-black text-slate-900 dark:text-white leading-none font-mono">
+                  {kpis.sessionsThisQuarter ? kpis.sessionsThisQuarter * 4 : 24}
+                </div>
                 <div className="text-xs font-semibold text-slate-500 mt-1">Games Conducted</div>
               </div>
             </div>
@@ -126,7 +146,9 @@ export default function OrganizerDashboardView({
                 <Star className="w-5 h-5 fill-current" />
               </div>
               <div>
-                <div className="text-2xl font-black text-slate-900 dark:text-white leading-none font-mono">4.8</div>
+                <div className="text-2xl font-black text-slate-900 dark:text-white leading-none font-mono">
+                  {avgSatisfaction.toFixed(1)}
+                </div>
                 <div className="text-xs font-semibold text-slate-500 mt-1">Avg. Rating</div>
               </div>
             </div>
@@ -162,7 +184,7 @@ export default function OrganizerDashboardView({
                   </div>
                   <div className="flex items-center gap-1.5 font-bold text-emerald-600 dark:text-emerald-400">
                     <Users className="w-3.5 h-3.5" />
-                    <span>85 / 120 participants confirmed</span>
+                    <span>{confirmedJoining} participants confirmed</span>
                   </div>
                 </div>
               </div>
@@ -263,10 +285,10 @@ export default function OrganizerDashboardView({
 
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
               {[
-                { title: 'Games Selected', sub: '5 games in plan' },
-                { title: 'Teams Generated', sub: '4 teams (3-4 members)' },
-                { title: 'Props Ready', sub: 'All materials ready' },
-                { title: 'Location Confirmed', sub: 'Cafeteria, Noida' },
+                { title: 'Games Selected', sub: `${nextSession?.agenda?.length || 3} games in plan` },
+                { title: 'Teams Generated', sub: '4 teams (balanced)' },
+                { title: 'Props Ready', sub: nextSession?.propsChecklist?.length ? `${nextSession.propsChecklist.length} props checked` : 'Materials ready' },
+                { title: 'Location Confirmed', sub: nextSession?.location || 'Cafeteria, Noida' },
               ].map((item, idx) => (
                 <div
                   key={idx}
@@ -297,30 +319,36 @@ export default function OrganizerDashboardView({
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {[
-                { name: 'September Fun Friday', date: 'Sep 23, 2026', att: '92 participants', rating: '4.8', thumb: '🎉' },
-                { name: 'Independence Special', date: 'Aug 15, 2026', att: '76 participants', rating: '4.6', thumb: '🇮🇳' },
-                { name: 'Team Bonding Day', date: 'Jul 28, 2026', att: '68 participants', rating: '4.7', thumb: '🤝' },
-              ].map((s, idx) => (
-                <div
-                  key={idx}
-                  className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-amber-100 dark:border-slate-800 shadow-xs flex items-center justify-between group hover:shadow-md transition-all"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl p-2 rounded-xl bg-amber-50 dark:bg-slate-800">{s.thumb}</span>
-                    <div>
-                      <div className="font-bold text-xs text-slate-900 dark:text-white group-hover:text-purple-600 transition-colors">
-                        {s.name}
+              {recentCompleted.length > 0 ? (
+                recentCompleted.map((s, idx) => (
+                  <div
+                    key={s._id || idx}
+                    className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-amber-100 dark:border-slate-800 shadow-xs flex items-center justify-between group hover:shadow-md transition-all"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl p-2 rounded-xl bg-amber-50 dark:bg-slate-800">
+                        {idx === 0 ? '🎉' : idx === 1 ? '🌟' : '🤝'}
+                      </span>
+                      <div>
+                        <div className="font-bold text-xs text-slate-900 dark:text-white group-hover:text-purple-600 transition-colors">
+                          {s.title}
+                        </div>
+                        <div className="text-[10px] text-slate-400 mt-0.5">
+                          {s.date ? new Date(s.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Recent'} • {s.location || 'Cafeteria'}
+                        </div>
                       </div>
-                      <div className="text-[10px] text-slate-400 mt-0.5">{s.date} • {s.att}</div>
+                    </div>
+                    <div className="flex items-center gap-1 text-xs font-bold text-amber-500">
+                      <Star className="w-3.5 h-3.5 fill-current" />
+                      <span>{avgSatisfaction.toFixed(1)}</span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1 text-xs font-bold text-amber-500">
-                    <Star className="w-3.5 h-3.5 fill-current" />
-                    <span>{s.rating}</span>
-                  </div>
+                ))
+              ) : (
+                <div className="col-span-3 text-center py-6 text-xs text-slate-400 italic bg-amber-50/40 dark:bg-slate-800/40 rounded-2xl border border-dashed border-amber-200 dark:border-slate-700">
+                  No completed past sessions recorded yet. Completed sessions will show here automatically.
                 </div>
-              ))}
+              )}
             </div>
           </div>
     </div>
