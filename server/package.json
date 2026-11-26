@@ -4,10 +4,10 @@
   "description": "FridayQuest Backend - Fun Friday host, scorekeeper and live game engine",
   "main": "dist/server.js",
   "scripts": {
-    "dev": "node init && tsx watch src/server.ts",
-    "build": "node init && tsc",
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "start": "node init && node dist/server.js",
+    "start": "node dist/server.js",
     "test": "jest --passWithNoTests",
     "seed": "tsx src/seed/seedFullDemo.ts"
   },
